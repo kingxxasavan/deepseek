@@ -28,18 +28,13 @@ st.markdown("""
         background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(30, 58, 138, 0.1) 100%);
         backdrop-filter: blur(10px);
         border-right: 1px solid rgba(59, 130, 246, 0.3);
-        animation: slideIn 0.3s ease-out;
+        transition: transform 0.3s ease-in-out;
         overflow-y: auto;
     }
     
-    @keyframes slideIn {
-        from { transform: translateX(-100%); }
-        to { transform: translateX(0); }
-    }
-    
-    /* Hover effect for sidebar */
-    section[data-testid="stSidebar"] {
-        transition: transform 0.3s ease-in-out;
+    /* Hide sidebar content when not shown */
+    .stSidebar > div > div > div:has(.hidden-content) {
+        display: none;
     }
     
     /* Chat message styling like Grok */
@@ -81,8 +76,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Configure Gemini (use your API key via st.secrets or env)
-genai.configure(api_key=st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY")))
-model = genai.GenerativeModel('gemini-1.5-flash')
+try:
+    genai.configure(api_key=st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY")))
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception as e:
+    st.error(f"Gemini setup failed: {e}. Check your API key in secrets.toml.")
+    model = None
 
 # Session state for chats and user
 if "user_name" not in st.session_state:
@@ -94,13 +93,28 @@ if "current_chat_id" not in st.session_state:
 if "show_sidebar" not in st.session_state:
     st.session_state.show_sidebar = False
 
-# Sidebar toggle button (for mobile/desktop hover/slide)
-if st.sidebar.button("☰ Menu", key="toggle_sidebar"):
-    st.session_state.show_sidebar = not st.session_state.show_sidebar
+# Top-right toggle button (always visible)
+col1, col2, col3 = st.columns([1, 1, 20])  # Spacer for top-right placement
+with col3:
+    if st.button("☰", key="toggle_sidebar", help="Toggle Sidebar"):
+        st.session_state.show_sidebar = not st.session_state.show_sidebar
+        # JS to force sidebar expand/collapse on toggle (smooth slide)
+        expand_state = "true" if st.session_state.show_sidebar else "false"
+        st.components.v1.html(f"""
+            <script>
+            parent.document.querySelector('section[data-testid="stSidebar"] button[kind="header"]').click();
+            if (!{expand_state}) {{
+                setTimeout(() => {{
+                    parent.document.querySelector('section[data-testid="stSidebar"] button[kind="header"]').click();
+                }}, 100);
+            }}
+            </script>
+        """, height=0)
 
-# Sidebar content (only show if toggled or expanded)
+# Sidebar content (conditionally shown)
 with st.sidebar:
-    if st.session_state.show_sidebar or st.sidebar.get_state() == "expanded":
+    if st.session_state.show_sidebar:
+        st.markdown('<div class="sidebar-content">', unsafe_allow_html=True)  # Wrapper for CSS
         st.header("📚 CrypticX Chats")
         
         # Create new chat
@@ -120,11 +134,12 @@ with st.sidebar:
         else:
             filtered_chats = list(st.session_state.chats.items())
         
-        # Previous chats list (like Grok's chat history)
+        # Previous chats list (like Grok, with timestamps)
         st.subheader("Previous Chats")
         for chat_id, messages in filtered_chats[-10:]:  # Show last 10
-            chat_preview = messages[-1]["content"][:50] + "..." if messages else "New Chat"
-            if st.button(f"Chat {chat_id.split('_')[0]}: {chat_preview}", key=f"chat_{chat_id}"):
+            timestamp = chat_id.split('_')[1] if '_' in chat_id else "Recent"
+            chat_preview = messages[-1]["content"][:50] + "..." if messages else f"New Chat - {timestamp}"
+            if st.button(f"{timestamp}: {chat_preview}", key=f"chat_{chat_id}"):
                 st.session_state.current_chat_id = chat_id
                 st.rerun()
         
@@ -133,6 +148,8 @@ with st.sidebar:
             st.session_state.chats = {}
             st.session_state.current_chat_id = None
             st.rerun()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # Main chat area
 if st.session_state.current_chat_id is None:
@@ -141,7 +158,7 @@ if st.session_state.current_chat_id is None:
     <div style="text-align: center; padding: 2rem;">
         <h1>Hello, {st.session_state.user_name}! 👋</h1>
         <p>Welcome to CrypticX, your AI study companion. Upload docs for analysis, summarize notes, or chat with Gemini 1.5.</p>
-        <p>Start by creating a new chat in the sidebar!</p>
+        <p>Start by creating a new chat (click ☰ top-right)!</p>
     </div>
     """, unsafe_allow_html=True)
 else:
@@ -160,42 +177,53 @@ else:
     
     # File upload for documents (pin-like)
     uploaded_file = st.file_uploader("📎 Upload Document (PDF/DOC for analysis)", type=["pdf", "docx", "txt"])
-    if uploaded_file is not None:
-        # Handle upload: Save temporarily and analyze
-        with open("temp_upload", "wb") as f:
+    if uploaded_file is not None and model:
+        # Handle upload: Save temporarily and analyze (placeholder for extraction)
+        file_path = f"temp_{uploaded_file.name}"
+        with open(file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
-        # Example: Summarize with Gemini (adapt for full analysis)
-        summary_prompt = f"Summarize this document for study: {uploaded_file.name}"
-        # For real impl, use PyPDF2 or docx to extract text first
-        extracted_text = "Extracted text here"  # Placeholder: Implement text extraction
-        response = model.generate_content([summary_prompt, extracted_text])
+        # TODO: Implement real extraction (e.g., with PyPDF2)
+        extracted_text = "Extracted document text here..."  # Replace with actual extraction
+        summary_prompt = f"Summarize this document for study purposes: {uploaded_file.name}\n\nContent: {extracted_text}"
+        try:
+            response = model.generate_content(summary_prompt)
+            ai_response = f"📄 Document Analysis/Summary:\n{response.text}"
+        except Exception as e:
+            ai_response = f"Analysis error: {str(e)}"
+        
         st.session_state.chats[st.session_state.current_chat_id].append({
             "role": "ai",
-            "content": f"📄 Document Analysis/Summary:\n{response.text}"
+            "content": ai_response
         })
-        os.remove("temp_upload")  # Clean up
+        os.remove(file_path)  # Clean up
+        st.success("Document analyzed! Check the chat.")
         st.rerun()
+    elif uploaded_file is not None:
+        st.warning("Upload ready, but Gemini not configured. Add API key to secrets.toml.")
     
     # Chat input
     if prompt := st.chat_input("Type your message... (e.g., 'Summarize this' or ask Gemini)"):
-        # Add user message
-        st.session_state.chats[st.session_state.current_chat_id].append({"role": "user", "content": prompt})
-        with chat_container:
-            st.markdown(f'<div class="chat-message user-message">{prompt}</div>', unsafe_allow_html=True)
-        
-        # Generate AI response with Gemini (context-aware, continues chat)
-        chat_history = [{"role": m["role"], "parts": [m["content"]]} for m in current_chat]
-        full_prompt = chat_history + [{"role": "user", "parts": [prompt]}]
-        try:
-            response = model.generate_content(full_prompt)
-            ai_msg = response.text
-        except Exception as e:
-            ai_msg = f"Oops! Error: {str(e)}. Check your API key."
-        
-        st.session_state.chats[st.session_state.current_chat_id].append({"role": "ai", "content": ai_msg})
-        
-        # Rerun to show new message
-        st.rerun()
+        if not model:
+            st.error("Gemini not set up. Add API key.")
+        else:
+            # Add user message
+            st.session_state.chats[st.session_state.current_chat_id].append({"role": "user", "content": prompt})
+            with chat_container:
+                st.markdown(f'<div class="chat-message user-message">{prompt}</div>', unsafe_allow_html=True)
+            
+            # Generate AI response with Gemini (context-aware, continues chat)
+            chat_history = [{"role": m["role"], "parts": [m["content"]]} for m in current_chat]
+            full_prompt = chat_history + [{"role": "user", "parts": [prompt]}]
+            try:
+                response = model.generate_content(full_prompt)
+                ai_msg = response.text
+            except Exception as e:
+                ai_msg = f"Oops! Error: {str(e)}. Check your API key."
+            
+            st.session_state.chats[st.session_state.current_chat_id].append({"role": "ai", "content": ai_msg})
+            
+            # Rerun to show new message
+            st.rerun()
 
 # Footer
 st.markdown("---")
