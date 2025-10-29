@@ -1,523 +1,776 @@
 import streamlit as st
 import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
-import os
-import io
-import pandas as pd
-from PIL import Image
-import base64
+from datetime import datetime
+import json
 
-# Configure page
+# Page config
+
 st.set_page_config(
-    page_title="CrypticX",
-    page_icon="🔮",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+page_title=“Cryptic AI Study Tool”,
+page_icon=“🔮”,
+layout=“wide”,
+initial_sidebar_state=“collapsed”
 )
 
 # Custom CSS for purple glass design
-st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+st.markdown(”””
+
+<style>
+    /* Global Styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    /* Remove default Streamlit padding */
+    .block-container {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
     
     .main {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        font-family: 'Inter', sans-serif;
+        padding: 0 !important;
     }
     
+    [data-testid="stAppViewContainer"] {
+        background: linear-gradient(135deg, #1a0033 0%, #2d1b4e 50%, #1a0033 100%);
+        background-attachment: fixed;
+    }
+    
+    /* Hide Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Glass morphism styles */
     .glass {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(139, 92, 246, 0.1);
         backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        border-radius: 20px;
         padding: 2rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-    
-    .purple-glass {
-        background: rgba(147, 51, 234, 0.15);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(147, 51, 234, 0.3);
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 8px 32px rgba(147, 51, 234, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(139, 92, 246, 0.15);
     }
     
     .green-glass {
-        background: rgba(34, 197, 94, 0.15);
+        background: rgba(74, 222, 128, 0.1);
         backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(34, 197, 94, 0.3);
-        border-radius: 16px;
+        border: 1px solid rgba(74, 222, 128, 0.2);
+        border-radius: 20px;
         padding: 1.5rem;
-        box-shadow: 0 8px 32px rgba(34, 197, 94, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(74, 222, 128, 0.15);
     }
     
+    /* Navigation Bar */
     .nav-bar {
         position: fixed;
         top: 0;
-        width: 100%;
+        left: 0;
+        right: 0;
         z-index: 1000;
-        background: rgba(0, 0, 0, 0.1);
+        background: rgba(26, 0, 51, 0.9);
         backdrop-filter: blur(20px);
-        padding: 1rem 0;
+        padding: 1rem 3rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+        transition: transform 0.3s ease;
+    }
+    
+    .nav-hidden {
+        transform: translateY(-100%);
+    }
+    
+    .nav-logo {
+        font-size: 1.8rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .nav-links {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
     }
     
     .nav-link {
-        color: white !important;
+        color: #c4b5fd;
         text-decoration: none;
-        margin: 0 1rem;
         font-weight: 500;
+        transition: color 0.3s;
+        cursor: pointer;
     }
     
     .nav-link:hover {
-        color: #a855f7 !important;
+        color: #a78bfa;
     }
     
-    .btn-primary {
-        background: linear-gradient(135deg, #a855f7, #9333ea);
+    /* Hero Section */
+    .hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 8rem 2rem 4rem;
+    }
+    
+    .hero-title {
+        font-size: 4.5rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.5rem;
+        color: #c4b5fd;
+        margin-bottom: 2rem;
+    }
+    
+    /* Button Styles */
+    .cta-button {
+        background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
         color: white;
+        padding: 1rem 3rem;
         border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 500;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        display: inline-block;
+        text-decoration: none;
+        margin: 1rem;
     }
     
-    .btn-secondary {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 500;
+    .cta-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
     }
     
-    .centered-form {
-        max-width: 400px;
-        margin: 0 auto;
+    /* Section Styles */
+    .section {
+        min-height: 100vh;
+        padding: 6rem 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .section-title {
+        font-size: 3rem;
+        text-align: center;
+        background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 3rem;
+    }
+    
+    /* Feature Cards */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .feature-card {
+        background: rgba(139, 92, 246, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        border-radius: 20px;
         padding: 2rem;
+        text-align: center;
+        transition: transform 0.3s;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(139, 92, 246, 0.5);
+    }
+    
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-title {
+        font-size: 1.5rem;
+        color: #a78bfa;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-desc {
+        color: #c4b5fd;
+        line-height: 1.6;
+    }
+    
+    /* Pricing Cards */
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem auto;
+        max-width: 1200px;
     }
     
     .pricing-card {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(139, 92, 246, 0.1);
         backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        padding: 2rem;
-        text-align: center;
-        color: white;
-    }
-    
-    .pricing-card.pro {
-        background: rgba(168, 85, 247, 0.2);
-        border: 1px solid rgba(168, 85, 247, 0.4);
-        position: relative;
-    }
-    
-    .pricing-card.pro::before {
-        content: 'MOST POPULAR';
-        position: absolute;
-        top: -10px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #a855f7;
-        color: white;
-        padding: 0.25rem 1rem;
+        border: 2px solid rgba(139, 92, 246, 0.3);
         border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
+        padding: 2.5rem;
+        text-align: center;
+        transition: transform 0.3s, border-color 0.3s;
     }
     
-    .feature-list {
-        list-style: none;
-        padding: 0;
+    .pricing-card:hover {
+        transform: scale(1.05);
+        border-color: rgba(139, 92, 246, 0.6);
     }
     
-    .feature-list li {
-        padding: 0.5rem 0;
-        color: rgba(255, 255, 255, 0.8);
+    .pricing-card.featured {
+        border-color: #a78bfa;
+        border-width: 3px;
     }
     
-    .feature-list li::before {
-        content: '✓ ';
-        color: #a855f7;
+    .pricing-plan {
+        font-size: 1.8rem;
+        color: #a78bfa;
+        margin-bottom: 1rem;
         font-weight: bold;
     }
     
-    h1, h2, h3 {
+    .pricing-price {
+        font-size: 3rem;
         color: white;
-        font-weight: 700;
+        margin: 1rem 0;
     }
     
-    /* Hide nav on scroll - approximate with JS */
-    <script>
-    let lastScrollTop = 0;
-    const nav = document.querySelector('.nav-bar');
-    window.addEventListener('scroll', () => {
-        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        if (scrollTop > lastScrollTop && scrollTop > 100) {
-            nav.style.transform = 'translateY(-100%)';
-        } else {
-            nav.style.transform = 'translateY(0)';
-        }
-        lastScrollTop = scrollTop;
-    });
-    </script>
-    </style>
-""", unsafe_allow_html=True)
+    .pricing-features {
+        text-align: left;
+        margin: 2rem 0;
+        color: #c4b5fd;
+        line-height: 2;
+    }
+    
+    /* Auth Container */
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+    }
+    
+    .auth-box {
+        background: rgba(139, 92, 246, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        border-radius: 20px;
+        padding: 3rem;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 8px 32px 0 rgba(139, 92, 246, 0.15);
+    }
+    
+    .auth-title {
+        font-size: 2.5rem;
+        text-align: center;
+        background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 2rem;
+    }
+    
+    /* Input Styles */
+    .stTextInput input, .stTextArea textarea {
+        background: rgba(139, 92, 246, 0.1) !important;
+        border: 1px solid rgba(139, 92, 246, 0.3) !important;
+        border-radius: 10px !important;
+        color: white !important;
+        padding: 0.8rem !important;
+    }
+    
+    .stTextInput input:focus, .stTextArea textarea:focus {
+        border-color: #a78bfa !important;
+        box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2) !important;
+    }
+    
+    /* Dashboard Styles */
+    .dashboard {
+        display: grid;
+        grid-template-columns: 300px 1fr 400px;
+        height: 100vh;
+        gap: 0;
+    }
+    
+    .sidebar {
+        background: rgba(26, 0, 51, 0.95);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(139, 92, 246, 0.2);
+        padding: 2rem 1rem;
+        overflow-y: auto;
+        transition: transform 0.3s ease;
+    }
+    
+    .sidebar-hidden {
+        transform: translateX(-100%);
+    }
+    
+    .main-content {
+        padding: 2rem;
+        overflow-y: auto;
+        background: rgba(26, 0, 51, 0.3);
+    }
+    
+    .right-panel {
+        background: rgba(26, 51, 26, 0.95);
+        backdrop-filter: blur(20px);
+        border-left: 1px solid rgba(74, 222, 128, 0.2);
+        padding: 2rem 1rem;
+        overflow-y: auto;
+        transition: transform 0.3s ease;
+    }
+    
+    .right-panel-hidden {
+        transform: translateX(100%);
+    }
+    
+    .tool-button {
+        width: 100%;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        background: rgba(139, 92, 246, 0.2);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 10px;
+        color: #c4b5fd;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: left;
+        font-size: 1rem;
+    }
+    
+    .tool-button:hover {
+        background: rgba(139, 92, 246, 0.3);
+        border-color: #a78bfa;
+        transform: translateX(5px);
+    }
+    
+    .generated-item {
+        background: rgba(74, 222, 128, 0.1);
+        border: 1px solid rgba(74, 222, 128, 0.3);
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+        color: #86efac;
+    }
+    
+    /* Scrollbar Styles */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(139, 92, 246, 0.1);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: rgba(139, 92, 246, 0.5);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(139, 92, 246, 0.7);
+    }
+    
+    /* Contact Form */
+    .contact-section {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    /* Labels */
+    label {
+        color: #c4b5fd !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Buttons */
+    .stButton button {
+        background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.8rem 2rem;
+        font-weight: bold;
+        width: 100%;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .stButton button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(139, 92, 246, 0.4);
+    }
+</style>
+
+“””, unsafe_allow_html=True)
 
 # Initialize session state
-if 'page' not in st.session_state:
-    st.session_state.page = 'home'
-if 'user' not in st.session_state:
-    st.session_state.user = None
-if 'chat_history' not in st.session_state:
-    st.session_state.chat_history = []
-if 'show_right_panel' not in st.session_state:
-    st.session_state.show_right_panel = True
-if 'generated_content' not in st.session_state:
-    st.session_state.generated_content = {'flashcards': [], 'quizzes': [], 'documents': []}
 
-# Gemini setup - assume API key in secrets
-try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        generation_config={
-            "temperature": 0.7,
-            "top_k": 50,
-            "top_p": 0.95,
-            "max_output_tokens": 2048,
-        },
-        safety_settings={
-            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-        }
-    )
-except:
-    st.warning("Gemini API key not found. Please add to secrets.toml")
-    model = None
+if ‘page’ not in st.session_state:
+st.session_state.page = ‘landing’
+if ‘logged_in’ not in st.session_state:
+st.session_state.logged_in = False
+if ‘flashcards’ not in st.session_state:
+st.session_state.flashcards = []
+if ‘quizzes’ not in st.session_state:
+st.session_state.quizzes = []
+if ‘documents’ not in st.session_state:
+st.session_state.documents = []
+if ‘show_sidebar’ not in st.session_state:
+st.session_state.show_sidebar = True
+if ‘show_right_panel’ not in st.session_state:
+st.session_state.show_right_panel = True
 
+# Navigation function
+
+def navigate_to(page):
+st.session_state.page = page
+st.rerun()
+
+# Landing Page
+
+def landing_page():
 # Navigation Bar
-def render_nav():
-    col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
-    with col1:
-        if st.button("Home", key="nav_home"):
-            st.session_state.page = 'home'
-    with col2:
-        if st.button("Pricing", key="nav_pricing"):
-            st.session_state.page = 'pricing'
-    with col3:
-        if st.button("Contact", key="nav_contact"):
-            st.session_state.page = 'contact'
-    with col4:
-        if st.button("Dashboard", key="nav_dashboard"):
-            if st.session_state.user:
-                st.session_state.page = 'dashboard'
-            else:
-                st.session_state.page = 'login'
-    with col5:
-        if st.session_state.user:
-            if st.button("Logout", key="nav_logout"):
-                st.session_state.user = None
-                st.rerun()
-        else:
-            if st.button("Login", key="nav_login"):
-                st.session_state.page = 'login'
+st.markdown(”””
+<div class="nav-bar" id="navbar">
+<div class="nav-logo">🔮 Cryptic AI</div>
+<div class="nav-links">
+<a class="nav-link" onclick="scrollToSection('why')">Why Choose Us</a>
+<a class="nav-link" onclick="scrollToSection('features')">Features</a>
+<a class="nav-link" onclick="scrollToSection('pricing')">Pricing</a>
+<a class="nav-link" onclick="scrollToSection('contact')">Contact</a>
+</div>
+</div>
 
-st.markdown('<div class="nav-bar"><div style="display: flex; justify-content: center; align-items: center;">', unsafe_allow_html=True)
-render_nav()
+```
+<script>
+    let lastScroll = 0;
+    const navbar = document.getElementById('navbar');
+    
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        
+        if (currentScroll > lastScroll && currentScroll > 100) {
+            navbar.classList.add('nav-hidden');
+        } else {
+            navbar.classList.remove('nav-hidden');
+        }
+        
+        lastScroll = currentScroll;
+    });
+    
+    function scrollToSection(id) {
+        document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+""", unsafe_allow_html=True)
+
+# Hero Section
+st.markdown("""
+<div class="hero">
+    <div class="hero-title">Welcome to Cryptic AI</div>
+    <div class="hero-subtitle">Transform Your Learning with AI-Powered Study Tools</div>
+    <p style="color: #c4b5fd; font-size: 1.2rem; max-width: 800px; margin-bottom: 2rem;">
+        Harness the power of artificial intelligence to create flashcards, quizzes, 
+        and analyze documents instantly. Study smarter, not harder.
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+col1, col2, col3 = st.columns([1, 1, 1])
+with col2:
+    if st.button("🚀 Get Started For Free", key="hero_cta", use_container_width=True):
+        navigate_to('signup')
+
+# Why Choose Us Section
+st.markdown('<div id="why" class="section">', unsafe_allow_html=True)
+st.markdown('<h2 class="section-title">Why Choose Cryptic AI?</h2>', unsafe_allow_html=True)
+
+cols = st.columns(3)
+reasons = [
+    ("⚡", "Lightning Fast", "Generate study materials in seconds with our advanced AI technology"),
+    ("🎯", "Personalized Learning", "Adaptive content tailored to your learning style and pace"),
+    ("🔒", "Secure & Private", "Your data is encrypted and never shared with third parties")
+]
+
+for col, (icon, title, desc) in zip(cols, reasons):
+    with col:
+        st.markdown(f"""
+        <div class="feature-card">
+            <div class="feature-icon">{icon}</div>
+            <div class="feature-title">{title}</div>
+            <div class="feature-desc">{desc}</div>
+        </div>
+        """, unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Features Section
+st.markdown('<div id="features" class="section">', unsafe_allow_html=True)
+st.markdown('<h2 class="section-title">Powerful Features</h2>', unsafe_allow_html=True)
+
+cols = st.columns(2)
+features = [
+    ("🗃️", "AI Flashcards", "Automatically generate flashcards from any text or document"),
+    ("📝", "Smart Quizzes", "Create custom quizzes with multiple question types"),
+    ("📄", "Document Analysis", "Deep analysis and summarization of your study materials"),
+    ("🤖", "Gemini AI Integration", "Powered by Google's cutting-edge Gemini 1.5 Flash model")
+]
+
+for i, (icon, title, desc) in enumerate(features):
+    with cols[i % 2]:
+        st.markdown(f"""
+        <div class="feature-card">
+            <div class="feature-icon">{icon}</div>
+            <div class="feature-title">{title}</div>
+            <div class="feature-desc">{desc}</div>
+        </div>
+        """, unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
+
+# CTA Section
+st.markdown('<div class="section" style="min-height: 50vh;">', unsafe_allow_html=True)
+col1, col2, col3 = st.columns([1, 1, 1])
+with col2:
+    if st.button("🚀 Start Learning Now", key="features_cta", use_container_width=True):
+        navigate_to('signup')
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Pricing Section
+st.markdown('<div id="pricing" class="section">', unsafe_allow_html=True)
+st.markdown('<h2 class="section-title">Choose Your Plan</h2>', unsafe_allow_html=True)
+
+pricing_cols = st.columns(3)
+plans = [
+    ("Free", "$0", ["10 flashcards/month", "5 quizzes/month", "Basic document analysis", "Community support"], False),
+    ("Pro", "$9.99", ["Unlimited flashcards", "Unlimited quizzes", "Advanced AI analysis", "Priority support", "Export features"], True),
+    ("Team", "$29.99", ["Everything in Pro", "Team collaboration", "Admin dashboard", "API access", "24/7 support"], False)
+]
+
+for col, (plan, price, features_list, featured) in zip(pricing_cols, plans):
+    with col:
+        featured_class = "featured" if featured else ""
+        features_html = "".join([f"<div>✓ {feature}</div>" for feature in features_list])
+        st.markdown(f"""
+        <div class="pricing-card {featured_class}">
+            <div class="pricing-plan">{plan}</div>
+            <div class="pricing-price">{price}<span style="font-size: 1rem;">/month</span></div>
+            <div class="pricing-features">{features_html}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button(f"Choose {plan}", key=f"pricing_{plan}", use_container_width=True):
+            navigate_to('signup')
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Contact Section
+st.markdown('<div id="contact" class="section">', unsafe_allow_html=True)
+st.markdown('<div class="contact-section">', unsafe_allow_html=True)
+st.markdown('<h2 class="section-title">Get In Touch</h2>', unsafe_allow_html=True)
+
+with st.form("contact_form"):
+    st.text_input("Name", placeholder="Your name")
+    st.text_input("Email", placeholder="your@email.com")
+    st.text_area("Message", placeholder="How can we help you?", height=150)
+    submitted = st.form_submit_button("Send Message")
+    if submitted:
+        st.success("✅ Message sent! We'll get back to you soon.")
+
 st.markdown('</div></div>', unsafe_allow_html=True)
-st.markdown('<div style="height: 70px;"></div>', unsafe_allow_html=True)  # Spacer for fixed nav
+```
 
-# Page Router
-def main():
-    if st.session_state.page == 'home':
-        render_home()
-    elif st.session_state.page == 'pricing':
-        render_pricing()
-    elif st.session_state.page == 'login':
-        render_login()
-    elif st.session_state.page == 'signup':
-        render_signup()
-    elif st.session_state.page == 'forgot':
-        render_forgot()
-    elif st.session_state.page == 'dashboard':
-        if not st.session_state.user:
-            st.session_state.page = 'login'
-            st.rerun()
+# Login Page
+
+def login_page():
+st.markdown(’<div class="auth-container">’, unsafe_allow_html=True)
+st.markdown(’<div class="auth-box">’, unsafe_allow_html=True)
+st.markdown(’<div class="auth-title">Welcome Back</div>’, unsafe_allow_html=True)
+
+```
+with st.form("login_form"):
+    email = st.text_input("Email", placeholder="your@email.com")
+    password = st.text_input("Password", type="password", placeholder="Enter your password")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        login_button = st.form_submit_button("Login", use_container_width=True)
+    with col2:
+        if st.form_submit_button("Back", use_container_width=True):
+            navigate_to('landing')
+    
+    if login_button:
+        if email and password:
+            st.session_state.logged_in = True
+            st.session_state.user_email = email
+            navigate_to('dashboard')
         else:
-            render_dashboard()
-    elif st.session_state.page == 'contact':
-        render_contact()
+            st.error("Please fill in all fields")
 
-def render_home():
-    st.markdown('<div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">', unsafe_allow_html=True)
-    st.markdown('<h1>Welcome to CrypticX</h1><p style="font-size: 1.2rem; color: rgba(255,255,255,0.8);">Your AI-powered study companion. Unlock the power of generative AI to master any subject.</p>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("Forgot Password?", use_container_width=True):
+        navigate_to('forgot')
+with col2:
+    if st.button("Sign Up", use_container_width=True):
+        navigate_to('signup')
+
+st.markdown('</div></div>', unsafe_allow_html=True)
+```
+
+# Signup Page
+
+def signup_page():
+st.markdown(’<div class="auth-container">’, unsafe_allow_html=True)
+st.markdown(’<div class="auth-box">’, unsafe_allow_html=True)
+st.markdown(’<div class="auth-title">Create Account</div>’, unsafe_allow_html=True)
+
+```
+with st.form("signup_form"):
+    name = st.text_input("Full Name", placeholder="John Doe")
+    email = st.text_input("Email", placeholder="your@email.com")
+    password = st.text_input("Password", type="password", placeholder="Create a password")
+    confirm_password = st.text_input("Confirm Password", type="password", placeholder="Confirm your password")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        signup_button = st.form_submit_button("Sign Up", use_container_width=True)
     with col2:
-        st.markdown('<button class="btn-primary" onclick="st.session_state.page = \'signup\'">Get Started for Free</button>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        if st.form_submit_button("Back", use_container_width=True):
+            navigate_to('landing')
+    
+    if signup_button:
+        if name and email and password and confirm_password:
+            if password == confirm_password:
+                st.session_state.logged_in = True
+                st.session_state.user_email = email
+                st.session_state.user_name = name
+                navigate_to('dashboard')
+            else:
+                st.error("Passwords don't match")
+        else:
+            st.error("Please fill in all fields")
 
-    # Why Choose Us
-    st.markdown('<div class="glass" style="margin: 4rem 2rem; padding: 3rem; text-align: center;">', unsafe_allow_html=True)
-    st.markdown('<h2>Why Choose CrypticX?</h2><p>Revolutionize your learning with cutting-edge AI tools designed for students and professionals.</p>', unsafe_allow_html=True)
-    cols = st.columns(3)
-    with cols[0]:
-        st.markdown('<h3>🔮 AI Magic</h3><p>Generate flashcards and quizzes instantly.</p>', unsafe_allow_html=True)
-    with cols[1]:
-        st.markdown('<h3>📚 Document Analysis</h3><p>Upload PDFs and get smart summaries.</p>', unsafe_allow_html=True)
-    with cols[2]:
-        st.markdown('<h3>🚀 Easy to Use</h3><p>Intuitive interface, start in seconds.</p>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+if st.button("Already have an account? Login", use_container_width=True):
+    navigate_to('login')
 
-    # Features
-    st.markdown('<div style="margin: 4rem 2rem; text-align: center;">', unsafe_allow_html=True)
-    st.markdown('<h2>Features</h2>', unsafe_allow_html=True)
-    cols = st.columns(2)
-    with cols[0]:
-        st.markdown("""
-        <ul class="feature-list">
-            <li>Flashcard Generation</li>
-            <li>Interactive Quizzes</li>
-            <li>PDF Upload & Analysis</li>
-            <li>Progress Tracking</li>
-        </ul>
-        """, unsafe_allow_html=True)
-    with cols[1]:
-        st.markdown("""
-        <ul class="feature-list">
-            <li>Advanced Summaries</li>
-            <li>Team Collaboration</li>
-            <li>Custom Integrations</li>
-            <li>Priority Support</li>
-        </ul>
-        """, unsafe_allow_html=True)
-    col1, col2, col3 = st.columns(3)
+st.markdown('</div></div>', unsafe_allow_html=True)
+```
+
+# Forgot Password Page
+
+def forgot_page():
+st.markdown(’<div class="auth-container">’, unsafe_allow_html=True)
+st.markdown(’<div class="auth-box">’, unsafe_allow_html=True)
+st.markdown(’<div class="auth-title">Reset Password</div>’, unsafe_allow_html=True)
+
+```
+st.markdown('<p style="text-align: center; color: #c4b5fd; margin-bottom: 2rem;">Enter your email to receive a password reset link</p>', unsafe_allow_html=True)
+
+with st.form("forgot_form"):
+    email = st.text_input("Email", placeholder="your@email.com")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        reset_button = st.form_submit_button("Send Reset Link", use_container_width=True)
     with col2:
-        st.markdown('<button class="btn-primary" onclick="st.session_state.page = \'pricing\'">Get Started for Free</button>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-def render_pricing():
-    st.markdown('<div style="padding: 4rem 2rem; text-align: center;">', unsafe_allow_html=True)
-    st.markdown('<h1 style="color: white;">Choose Your Plan</h1><p style="color: rgba(255,255,255,0.8);">Start free, upgrade when you\'re ready</p>', unsafe_allow_html=True)
-    cols = st.columns(3)
-    with cols[0]:
-        st.markdown("""
-        <div class="pricing-card">
-            <h3>Free</h3>
-            <h2>$0<span style="font-size: 1rem;">/mo</span></h2>
-            <ul class="feature-list">
-                <li>10 AI questions/day</li>
-                <li>Basic summaries</li>
-                <li>5 quizzes/week</li>
-                <li>Community support</li>
-            </ul>
-            <button class="btn-secondary" onclick="st.session_state.page = 'signup'">Start Free</button>
-        </div>
-        """, unsafe_allow_html=True)
-    with cols[1]:
-        st.markdown("""
-        <div class="pricing-card pro">
-            <h3>Pro</h3>
-            <h2>$15<span style="font-size: 1rem;">/mo</span></h2>
-            <ul class="feature-list">
-                <li>Unlimited AI questions</li>
-                <li>Advanced summaries</li>
-                <li>Unlimited quizzes</li>
-                <li>PDF upload (100MB)</li>
-                <li>Priority support</li>
-                <li>Progress analytics</li>
-            </ul>
-            <button class="btn-primary" onclick="st.session_state.page = 'signup'">Get Pro</button>
-        </div>
-        """, unsafe_allow_html=True)
-    with cols[2]:
-        st.markdown("""
-        <div class="pricing-card">
-            <h3>Enterprise</h3>
-            <h2>$35<span style="font-size: 1rem;">/mo</span></h2>
-            <ul class="feature-list">
-                <li>Everything in Pro</li>
-                <li>Team accounts</li>
-                <li>Advanced analytics</li>
-                <li>Custom integrations</li>
-                <li>Dedicated support</li>
-                <li>Unlimited storage</li>
-            </ul>
-            <button class="btn-secondary">Contact Us</button>
-        </div>
-        """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-def render_login():
-    st.markdown('<div style="height: 100vh; display: flex; justify-content: center; align-items: center;">', unsafe_allow_html=True)
-    with st.container():
-        st.markdown('<div class="glass centered-form">', unsafe_allow_html=True)
-        st.markdown('<h2 style="text-align: center; color: white;">Login</h2>', unsafe_allow_html=True)
-        email = st.text_input("Email", placeholder="Enter your email")
-        password = st.text_input("Password", type="password", placeholder="Enter your password")
-        if st.button("Login", key="login_btn"):
-            # Mock login
-            if email and password:
-                st.session_state.user = {"email": email}
-                st.session_state.page = 'dashboard'
-                st.rerun()
-            else:
-                st.error("Please enter email and password")
-        col1, col2, col3 = st.columns(3)
-        with col2:
-            if st.button("Forgot Password?", key="forgot_link"):
-                st.session_state.page = 'forgot'
-                st.rerun()
-        st.markdown('<p style="text-align: center; color: rgba(255,255,255,0.8);">Don\'t have an account? <a href="#" onclick="st.session_state.page = \'signup\'" style="color: #a855f7;">Sign up</a></p>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-def render_signup():
-    st.markdown('<div style="height: 100vh; display: flex; justify-content: center; align-items: center;">', unsafe_allow_html=True)
-    with st.container():
-        st.markdown('<div class="glass centered-form">', unsafe_allow_html=True)
-        st.markdown('<h2 style="text-align: center; color: white;">Sign Up</h2>', unsafe_allow_html=True)
-        name = st.text_input("Full Name", placeholder="Enter your name")
-        email = st.text_input("Email", placeholder="Enter your email")
-        password = st.text_input("Password", type="password", placeholder="Create a password")
-        if st.button("Sign Up", key="signup_btn"):
-            # Mock signup
-            if name and email and password:
-                st.session_state.user = {"name": name, "email": email}
-                st.session_state.page = 'dashboard'
-                st.rerun()
-            else:
-                st.error("Please fill all fields")
-        st.markdown('<p style="text-align: center; color: rgba(255,255,255,0.8);">Already have an account? <a href="#" onclick="st.session_state.page = \'login\'" style="color: #a855f7;">Login</a></p>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-def render_forgot():
-    st.markdown('<div style="height: 100vh; display: flex; justify-content: center; align-items: center;">', unsafe_allow_html=True)
-    with st.container():
-        st.markdown('<div class="glass centered-form">', unsafe_allow_html=True)
-        st.markdown('<h2 style="text-align: center; color: white;">Forgot Password</h2>', unsafe_allow_html=True)
-        email = st.text_input("Email", placeholder="Enter your email to reset")
-        if st.button("Send Reset Link", key="reset_btn"):
-            if email:
-                st.success("Reset link sent to your email!")
-                st.session_state.page = 'login'
-                st.rerun()
-            else:
-                st.error("Please enter your email")
-        if st.button("Back to Login", key="back_login"):
-            st.session_state.page = 'login'
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-def render_contact():
-    st.markdown('<div style="padding: 4rem 2rem;">', unsafe_allow_html=True)
-    st.markdown('<div class="glass" style="max-width: 600px; margin: 0 auto;">', unsafe_allow_html=True)
-    st.markdown('<h2 style="text-align: center; color: white;">Contact Us</h2>', unsafe_allow_html=True)
-    name = st.text_input("Name")
-    email = st.text_input("Email")
-    message = st.text_area("Message")
-    if st.button("Send Message", key="contact_btn"):
-        st.success("Message sent! We'll get back to you soon.")
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-def render_dashboard():
-    # Full width layout
-    if 'chat_input' not in st.session_state:
-        st.session_state.chat_input = ""
+        if st.form_submit_button("Back", use_container_width=True):
+            navigate_to('login')
     
-    # Left sidebar - Purple glass side panel
-    with st.sidebar:
-        st.markdown('<div class="purple-glass" style="height: 100vh; overflow-y: auto;">', unsafe_allow_html=True)
-        st.markdown('<h3 style="color: white;">Study Tools</h3>', unsafe_allow_html=True)
-        tool = st.selectbox("Select Tool", ["Chat with AI", "Generate Flashcards", "Create Quiz", "Analyze Document"])
-        if tool == "Analyze Document":
-            uploaded_file = st.file_uploader("Upload PDF", type="pdf")
-            if uploaded_file:
-                # Mock analysis
-                st.session_state.generated_content['documents'].append("Analyzed: " + uploaded_file.name)
-        elif tool == "Generate Flashcards":
-            topic = st.text_input("Topic")
-            if st.button("Generate", key="gen_flash"):
-                if model:
-                    response = model.generate_content(f"Generate 5 flashcards on {topic}")
-                    st.session_state.generated_content['flashcards'].append(response.text)
-                else:
-                    st.session_state.generated_content['flashcards'].append(f"Mock flashcards on {topic}")
-        elif tool == "Create Quiz":
-            topic = st.text_input("Quiz Topic")
-            if st.button("Create", key="gen_quiz"):
-                if model:
-                    response = model.generate_content(f"Create a 10-question quiz on {topic}")
-                    st.session_state.generated_content['quizzes'].append(response.text)
-                else:
-                    st.session_state.generated_content['quizzes'].append(f"Mock quiz on {topic}")
-        st.markdown('</div>', unsafe_allow_html=True)
+    if reset_button:
+        if email:
+            st.success("✅ Reset link sent! Check your email.")
+        else:
+            st.error("Please enter your email")
+
+st.markdown('</div></div>', unsafe_allow_html=True)
+```
+
+# Dashboard
+
+def dashboard_page():
+sidebar_class = “” if st.session_state.show_sidebar else “sidebar-hidden”
+right_panel_class = “” if st.session_state.show_right_panel else “right-panel-hidden”
+
+```
+# Create three columns for dashboard layout
+col1, col2, col3 = st.columns([1, 3, 1.5])
+
+# Left Sidebar
+with col1:
+    st.markdown(f'<div class="sidebar {sidebar_class}">', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: #a78bfa; margin-bottom: 2rem;">🔮 Cryptic AI</h2>', unsafe_allow_html=True)
     
-    # Main chat area
-    col_left, col_right = st.columns([3, 1])
-    with col_left:
-        st.markdown('<div class="glass" style="height: 80vh; overflow-y: auto; padding: 1rem;">', unsafe_allow_html=True)
-        for message in st.session_state.chat_history:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+    if st.button("🗃️ Generate Flashcards", key="flashcard_btn", use_container_width=True):
+        st.session_state.current_tool = "flashcards"
+    
+    if st.button("📝 Create Quiz", key="quiz_btn", use_container_width=True):
+        st.session_state.current_tool = "quiz"
+    
+    if st.button("📄 Analyze Document", key="doc_btn", use_container_width=True):
+        st.session_state.current_tool = "document"
+    
+    if st.button("🤖 Chat with Gemini", key="chat_btn", use_container_width=True):
+        st.session_state.current_tool = "chat"
+        st.session_state.show_right_panel = False
+    
+    st.markdown("<hr style='border-color: rgba(139, 92, 246, 0.3); margin: 2rem 0;'>", unsafe_allow_html=True)
+    
+    if st.button("⚙️ Settings", key="settings_btn", use_container_width=True):
+        pass
+    
+    if st.button("🚪 Logout", key="logout_btn", use_container_width=True):
+        st.session_state.logged_in = False
+        navigate_to('landing')
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# Main Content
+with col2:
+    st.markdown('<div class="main-content">', unsafe_allow_html=True)
+    
+    tool = st.session_state.get('current_tool', 'flashcards')
+    
+    if tool == "flashcards":
+        st.markdown('<h1 style="color: #a78bfa;">🗃️ AI Flashcard Generator</h1>', unsafe_allow_html=True)
+        st.markdown('<div class="glass" style="margin-top: 2rem;">', unsafe_allow_html=True)
         
-        # Chat input
-        if prompt := st.chat_input("Ask anything about your studies..."):
-            st.session_state.chat_history.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
-            
-            # Auto-hide right panel when chatting
-            st.session_state.show_right_panel = False
-            
-            if model:
-                response = model.generate_content(prompt)
-                full_response = response.text
-            else:
-                full_response = "Mock response: This is a generated answer using Gemini 1.5 Flash."
-            
-            st.session_state.chat_history.append({"role": "assistant", "content": full_response})
-            with st.chat_message("assistant"):
-                st.markdown(full_response)
+        topic = st.text_input("Enter a topic:", placeholder="e.g., Python Programming, World War II, Calculus")
+        num_cards = st.slider("Number of flashcards:", 5, 20, 10)
         
-        # Show right panel after chat (manual toggle for simplicity)
-        if st.button("Show Outputs"):
-            st.session_state.show_right_panel = True
+        if st.button("Generate Flashcards", use_container_width=True):
+            with st.spinner("🔮 Creating flashcards..."):
+                # Simulated flashcard generation
+                new_cards = [
+                    {"front": f"Question {i+1} about {topic}", "back": f"Answer {i+1} with detailed explanation"}
+                    for i in range(num_cards)
+                ]
+                st.session_state.flashcards.extend(new_cards)
+                st.session_state.show_right_panel = True
+                st.success(f"✅ Generated {num_cards} flashcards!")
         
         st.markdown('</div>', unsafe_allow_html=True)
     
-    # Right panel - Green glass, conditional
-    if st.session_state.show_right_panel:
-        with col_right:
-            st.markdown('<div class="green-glass" style="height: 80vh; overflow-y: auto;">', unsafe_allow_html=True)
-            st.markdown('<h3 style="color: white;">Generated Content</h3>', unsafe_allow_html=True)
-            
-            if st.session_state.generated_content['flashcards']:
-                st.markdown("### Flashcards")
-                for card in st.session_state.generated_content['flashcards'][-3:]:  # Last 3
-                    st.markdown(card)
-            
-            if st.session_state.generated_content['quizzes']:
-                st.markdown("### Quizzes")
-                for quiz in st.session_state.generated_content['quizzes'][-3:]:
-                    st.markdown(quiz)
-            
-            if st.session_state.generated_content['documents']:
-                st.markdown("### Documents")
-                for doc in st.session_state.generated_content['documents'][-3:]:
-                    st.markdown(doc)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-
-if __name__ == "__main__":
-    main()
+    elif tool == "quiz":
+        st.markdown('<h1 style="color: #a78bfa;">📝 Smart Quiz Creator</h1>', unsafe_allow_html=True)
+```
