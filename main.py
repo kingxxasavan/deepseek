@@ -1,171 +1,202 @@
-# app.py - Main Streamlit app for travel login/signup/forgot password
-# Run with: streamlit run app.py
-
 import streamlit as st
-import firebase_admin
-from firebase_admin import credentials, firestore, auth
+import google.generativeai as genai
 from datetime import datetime
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import secrets
-import string
+import json
+import os
 
-# Custom CSS for purple buttons (chose purple over black for a more vibrant, modern travel app feel)
+# Page config
+st.set_page_config(
+    page_title="CrypticX Dashboard - AI Study Tool",
+    page_icon="📚",
+    layout="wide",
+    initial_sidebar_state="collapsed"  # Start collapsed for sliding effect
+)
+
+# Custom CSS for transparent blue background and sliding sidebar
 st.markdown("""
-<style>
-div.stButton > button {
-    background-color: #8B00FF;
-    color: white;
-    border-radius: 4px;
-}
-div.stButton > button:hover {
-    background-color: #7D02CC;
-    color: white;
-}
-</style>
+    <style>
+    /* Transparent blue background */
+    .main .block-container {
+        background: linear-gradient(135deg, rgba(30, 58, 138, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 2rem;
+    }
+    
+    /* Sliding sidebar animation */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(30, 58, 138, 0.1) 100%);
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(59, 130, 246, 0.3);
+        animation: slideIn 0.3s ease-out;
+        overflow-y: auto;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(0); }
+    }
+    
+    /* Hover effect for sidebar */
+    section[data-testid="stSidebar"] {
+        transition: transform 0.3s ease-in-out;
+    }
+    
+    /* Chat message styling like Grok */
+    .chat-message {
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-radius: 10px;
+        max-width: 80%;
+        word-wrap: break-word;
+    }
+    
+    .user-message {
+        background: linear-gradient(135deg, #3B82F6, #1E40AF);
+        color: white;
+        margin-left: auto;
+        text-align: right;
+    }
+    
+    .ai-message {
+        background: rgba(255, 255, 255, 0.1);
+        color: #1F2937;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    
+    /* Upload pin icon styling */
+    [data-testid="stFileUploader"] {
+        position: relative;
+    }
+    
+    [data-testid="stFileUploader"]::before {
+        content: "📎";
+        position: absolute;
+        left: -2rem;
+        top: 0.5rem;
+        font-size: 1.5rem;
+    }
+    </style>
 """, unsafe_allow_html=True)
 
-# Firebase Configuration
-# Replace with your Firebase project details
-# Download service account key from Firebase Console > Project Settings > Service Accounts > Generate new private key
-@st.cache_resource
-def init_firebase():
-    if not firebase_admin._apps:
-        cred = credentials.Certificate("path/to/your/serviceAccountKey.json")  # Update this path
-        firebase_admin.initialize_app(cred)
-    return firestore.client(), auth
+# Configure Gemini (use your API key via st.secrets or env)
+genai.configure(api_key=st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY")))
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-# Email configuration (for forgot password) - Use your SMTP server (e.g., Gmail)
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-SENDER_EMAIL = "your-sender@gmail.com"  # Update
-SENDER_PASSWORD = "your-app-password"  # Use app password for Gmail
+# Session state for chats and user
+if "user_name" not in st.session_state:
+    st.session_state.user_name = "User"  # From login, e.g., st.session_state.user_name
+if "chats" not in st.session_state:
+    st.session_state.chats = {}  # {chat_id: [{"role": "user/ai", "content": str}]}
+if "current_chat_id" not in st.session_state:
+    st.session_state.current_chat_id = None
+if "show_sidebar" not in st.session_state:
+    st.session_state.show_sidebar = False
 
-def send_verification_email(email, code):
-    msg = MIMEMultipart()
-    msg['From'] = SENDER_EMAIL
-    msg['To'] = email
-    msg['Subject'] = "Password Reset Code"
-    body = f"Your 5-digit verification code is: {code}"
-    msg.attach(MimeText(body, 'plain'))
-    
-    try:
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(SENDER_EMAIL, SENDER_PASSWORD)
-        text = msg.as_string()
-        server.sendmail(SENDER_EMAIL, email, text)
-        server.quit()
-        return True
-    except Exception as e:
-        st.error(f"Failed to send email: {e}")
-        return False
+# Sidebar toggle button (for mobile/desktop hover/slide)
+if st.sidebar.button("☰ Menu", key="toggle_sidebar"):
+    st.session_state.show_sidebar = not st.session_state.show_sidebar
 
-# Multi-page setup using st.tabs for simplicity (or use st_pages for separate files)
-def main():
-    st.set_page_config(page_title="Travel App Auth", page_icon="🌍", layout="centered")
-    st.title("🌍 Personalized Travel Plans")
+# Sidebar content (only show if toggled or expanded)
+with st.sidebar:
+    if st.session_state.show_sidebar or st.sidebar.get_state() == "expanded":
+        st.header("📚 CrypticX Chats")
+        
+        # Create new chat
+        if st.button("➕ Create New Chat"):
+            new_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+            st.session_state.chats[new_id] = []
+            st.session_state.current_chat_id = new_id
+            st.rerun()
+        
+        # Search chats
+        search_query = st.text_input("🔍 Search Chats")
+        filtered_chats = []
+        if search_query:
+            for chat_id, messages in st.session_state.chats.items():
+                if any(search_query.lower() in msg["content"].lower() for msg in messages):
+                    filtered_chats.append((chat_id, messages))
+        else:
+            filtered_chats = list(st.session_state.chats.items())
+        
+        # Previous chats list (like Grok's chat history)
+        st.subheader("Previous Chats")
+        for chat_id, messages in filtered_chats[-10:]:  # Show last 10
+            chat_preview = messages[-1]["content"][:50] + "..." if messages else "New Chat"
+            if st.button(f"Chat {chat_id.split('_')[0]}: {chat_preview}", key=f"chat_{chat_id}"):
+                st.session_state.current_chat_id = chat_id
+                st.rerun()
+        
+        # Clear chats
+        if st.button("🗑️ Clear All Chats"):
+            st.session_state.chats = {}
+            st.session_state.current_chat_id = None
+            st.rerun()
+
+# Main chat area
+if st.session_state.current_chat_id is None:
+    # No chat selected, prompt to create one
+    st.markdown(f"""
+    <div style="text-align: center; padding: 2rem;">
+        <h1>Hello, {st.session_state.user_name}! 👋</h1>
+        <p>Welcome to CrypticX, your AI study companion. Upload docs for analysis, summarize notes, or chat with Gemini 1.5.</p>
+        <p>Start by creating a new chat in the sidebar!</p>
+    </div>
+    """, unsafe_allow_html=True)
+else:
+    # Load current chat
+    current_chat = st.session_state.chats[st.session_state.current_chat_id]
     
-    tab1, tab2, tab3 = st.tabs(["Welcome Back!", "Create Your Account?", "Forgot Password?"])
-    
-    db, auth_client = init_firebase()
-    
-    with tab1:
-        st.header("Sign In")
-        email = st.text_input("Email address*", placeholder="example@gmail.com")
-        password = st.text_input("Password*", type="password")
-        remember_me = st.checkbox("Remember me")
-        
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            if st.button("Sign In", use_container_width=True):
-                if email and password:
-                    try:
-                        user = auth_client.sign_in_with_email_and_password(email, password)
-                        st.success("Signed in successfully!")
-                        # Redirect or set session state
-                        st.session_state.user = user
-                    except Exception as e:
-                        st.error(f"Sign in failed: {e}")
-                else:
-                    st.warning("Please fill in all fields.")
-        
-        with col2:
-            st.markdown("---")
-            if st.button("Continue with Google", use_container_width=True):
-                st.info("Google OAuth integration placeholder - Implement with firebase_auth.")
-            if st.button("Continue with Apple", use_container_width=True):
-                st.info("Apple OAuth integration placeholder - Implement with firebase_auth.")
-        
-        st.markdown("[Forgot Password?](#tab3)")  # Link to tab
-    
-    with tab2:
-        st.header("Create Your Account")
-        full_name = st.text_input("Full Name")
-        email = st.text_input("Email address*", placeholder="example@gmail.com")
-        password = st.text_input("Password*", type="password", help="At least 6 characters")
-        
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            if st.button("Register", use_container_width=True):
-                if full_name and email and password:
-                    try:
-                        # Create user in Firebase Auth
-                        user = auth_client.create_user_with_email_and_password(email, password)
-                        # Save additional info to Firestore
-                        user_doc = {
-                            "full_name": full_name,
-                            "email": email,
-                            "created_at": datetime.now(),
-                            "is_active": True
-                        }
-                        db.collection("users").document(user["localId"]).set(user_doc)
-                        st.success("Account created successfully! Please sign in.")
-                    except Exception as e:
-                        st.error(f"Registration failed: {e}")
-                else:
-                    st.warning("Please fill in all fields.")
-        
-        with col2:
-            st.markdown("---")
-            if st.button("Continue with Google", use_container_width=True):
-                st.info("Google OAuth integration placeholder.")
-            if st.button("Continue with Apple", use_container_width=True):
-                st.info("Apple OAuth integration placeholder.")
-    
-    with tab3:
-        st.header("Forgot Password?")
-        email = st.text_input("Email address*", placeholder="example@gmail.com")
-        
-        if st.button("Send Code", use_container_width=True):
-            if email:
-                # Generate 5-digit code
-                code = ''.join(secrets.choice(string.digits) for _ in range(5))
-                st.session_state.reset_code = code  # Store in session for verification
-                st.session_state.reset_email = email
-                
-                if send_verification_email(email, code):
-                    st.success("Verification code sent to your email!")
-                    # Next step: Input code and new password
-                    entered_code = st.text_input("Enter 5-digit code")
-                    new_password = st.text_input("New Password", type="password")
-                    
-                    if st.button("Reset Password", use_container_width=True):
-                        if entered_code == code and new_password:
-                            try:
-                                auth_client.reset_password(email, new_password)
-                                st.success("Password reset successfully!")
-                                del st.session_state.reset_code
-                                del st.session_state.reset_email
-                            except Exception as e:
-                                st.error(f"Reset failed: {e}")
-                        else:
-                            st.warning("Invalid code or password.")
-                else:
-                    st.error("Failed to send code.")
+    # Display chat history (like Grok)
+    st.header(f"Chat: {st.session_state.current_chat_id.split('_')[0]}")
+    chat_container = st.container()
+    with chat_container:
+        for msg in current_chat:
+            if msg["role"] == "user":
+                st.markdown(f'<div class="chat-message user-message">{msg["content"]}</div>', unsafe_allow_html=True)
             else:
-                st.warning("Please enter your email.")
+                st.markdown(f'<div class="chat-message ai-message">{msg["content"]}</div>', unsafe_allow_html=True)
+    
+    # File upload for documents (pin-like)
+    uploaded_file = st.file_uploader("📎 Upload Document (PDF/DOC for analysis)", type=["pdf", "docx", "txt"])
+    if uploaded_file is not None:
+        # Handle upload: Save temporarily and analyze
+        with open("temp_upload", "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        # Example: Summarize with Gemini (adapt for full analysis)
+        summary_prompt = f"Summarize this document for study: {uploaded_file.name}"
+        # For real impl, use PyPDF2 or docx to extract text first
+        extracted_text = "Extracted text here"  # Placeholder: Implement text extraction
+        response = model.generate_content([summary_prompt, extracted_text])
+        st.session_state.chats[st.session_state.current_chat_id].append({
+            "role": "ai",
+            "content": f"📄 Document Analysis/Summary:\n{response.text}"
+        })
+        os.remove("temp_upload")  # Clean up
+        st.rerun()
+    
+    # Chat input
+    if prompt := st.chat_input("Type your message... (e.g., 'Summarize this' or ask Gemini)"):
+        # Add user message
+        st.session_state.chats[st.session_state.current_chat_id].append({"role": "user", "content": prompt})
+        with chat_container:
+            st.markdown(f'<div class="chat-message user-message">{prompt}</div>', unsafe_allow_html=True)
+        
+        # Generate AI response with Gemini (context-aware, continues chat)
+        chat_history = [{"role": m["role"], "parts": [m["content"]]} for m in current_chat]
+        full_prompt = chat_history + [{"role": "user", "parts": [prompt]}]
+        try:
+            response = model.generate_content(full_prompt)
+            ai_msg = response.text
+        except Exception as e:
+            ai_msg = f"Oops! Error: {str(e)}. Check your API key."
+        
+        st.session_state.chats[st.session_state.current_chat_id].append({"role": "ai", "content": ai_msg})
+        
+        # Rerun to show new message
+        st.rerun()
 
-if __name__ == "__main__":
-    main()
+# Footer
+st.markdown("---")
+st.markdown("<p style='text-align: center; color: rgba(59, 130, 246, 0.7);'>Powered by Gemini 1.5 | Document Analysis & Summarization Ready 🚀</p>", unsafe_allow_html=True)
