@@ -1,433 +1,523 @@
 import streamlit as st
-import time
-from datetime import datetime
+import google.generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
+import os
+import io
+import pandas as pd
+from PIL import Image
+import base64
 
-# Page configuration
-
+# Configure page
 st.set_page_config(
-page_title=“AI Learning Assistant”,
-page_icon=“🤖”,
-layout=“wide”,
-initial_sidebar_state=“collapsed”
+    page_title="CrypticX",
+    page_icon="🔮",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for glassmorphism and animations
-
-st.markdown(”””
-
-<style>
-    /* Main background with gradient */
-    .stApp {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    /* Hide default Streamlit elements */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    
-    /* Glass card effect */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 25px;
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-        margin: 10px 0;
-        animation: slideIn 0.5s ease-out;
-    }
-    
-    /* Sliding panel animation */
-    @keyframes slideIn {
-        from {
-            transform: translateX(-100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    /* Chat container */
-    .chat-container {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 20px;
-        min-height: 500px;
-        max-height: 600px;
-        overflow-y: auto;
-        animation: fadeIn 0.8s ease-in;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    /* Greeting text */
-    .greeting {
-        color: white;
-        text-align: center;
-        font-size: 2.5em;
-        font-weight: 600;
-        margin: 30px 0;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        animation: fadeInDown 1s ease-out;
-    }
-    
-    @keyframes fadeInDown {
-        from {
-            transform: translateY(-50px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-    
-    .subgreeting {
-        color: rgba(255, 255, 255, 0.9);
-        text-align: center;
-        font-size: 1.2em;
-        margin-bottom: 40px;
-        animation: fadeInUp 1.2s ease-out;
-    }
-    
-    @keyframes fadeInUp {
-        from {
-            transform: translateY(50px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-    
-    /* Feature cards */
-    .feature-card {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        border-radius: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 20px;
-        margin: 10px 0;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        color: white;
-    }
-    
-    .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 40px rgba(31, 38, 135, 0.5);
-        background: rgba(255, 255, 255, 0.2);
-    }
-    
-    /* Side panels */
-    .side-panel-left {
-        animation: slideIn 0.6s ease-out;
-    }
-    
-    .side-panel-right {
-        animation: slideInRight 0.6s ease-out;
-    }
-    
-    /* Message bubbles */
-    .user-message {
-        background: rgba(102, 126, 234, 0.6);
-        color: white;
-        padding: 12px 18px;
-        border-radius: 18px 18px 5px 18px;
-        margin: 8px 0;
-        max-width: 70%;
-        float: right;
-        clear: both;
-        backdrop-filter: blur(5px);
-    }
-    
-    .ai-message {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        padding: 12px 18px;
-        border-radius: 18px 18px 18px 5px;
-        margin: 8px 0;
-        max-width: 70%;
-        float: left;
-        clear: both;
-        backdrop-filter: blur(5px);
-    }
-    
-    /* Button styling */
-    .stButton>button {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
-        padding: 10px 20px;
-        backdrop-filter: blur(10px);
-        transition: all 0.3s ease;
-    }
-    
-    .stButton>button:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: scale(1.05);
-    }
-    
-    /* Text input styling */
-    .stTextInput>div>div>input {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
-        backdrop-filter: blur(10px);
-    }
-    
-    /* Icon styling */
-    .feature-icon {
-        font-size: 2em;
-        margin-bottom: 10px;
-    }
-</style>
-
-“””, unsafe_allow_html=True)
-
-# Initialize session state
-
-if ‘chat_history’ not in st.session_state:
-st.session_state.chat_history = []
-if ‘show_greeting’ not in st.session_state:
-st.session_state.show_greeting = True
-if ‘selected_feature’ not in st.session_state:
-st.session_state.selected_feature = None
-
-# Functions for AI features
-
-def generate_flashcards(topic, num_cards=5):
-“”“Simulate AI flashcard generation”””
-return [
-{“front”: f”Question {i+1} about {topic}”, “back”: f”Answer {i+1} for {topic}”}
-for i in range(num_cards)
-]
-
-def generate_quiz(topic, num_questions=5):
-“”“Simulate AI quiz generation”””
-return [
-{
-“question”: f”Question {i+1} about {topic}?”,
-“options”: [“Option A”, “Option B”, “Option C”, “Option D”],
-“correct”: 0
-}
-for i in range(num_questions)
-]
-
-def summarize_document(text):
-“”“Simulate AI document summarization”””
-return f”Summary: This document discusses key points about {text[:50]}… The main findings include comprehensive analysis and detailed insights.”
-
-# Main layout
-
-col_left, col_center, col_right = st.columns([1, 2, 1])
-
-# Left Panel - Feature Selection
-
-with col_left:
-st.markdown(’<div class="side-panel-left">’, unsafe_allow_html=True)
-st.markdown(”””
-<div class="glass-card">
-<h3 style="color: white; text-align: center;">✨ AI Features</h3>
-</div>
-“””, unsafe_allow_html=True)
-
-```
-# Feature buttons
-features = [
-    {"name": "💳 Flashcards", "icon": "💳", "key": "flashcards"},
-    {"name": "📝 Quiz Generator", "icon": "📝", "key": "quiz"},
-    {"name": "📄 Summarize", "icon": "📄", "key": "summarize"},
-    {"name": "💬 Chat", "icon": "💬", "key": "chat"}
-]
-
-for feature in features:
-    if st.button(feature['name'], key=feature['key'], use_container_width=True):
-        st.session_state.selected_feature = feature['key']
-        st.session_state.show_greeting = False
-        st.rerun()
-
-st.markdown('</div>', unsafe_allow_html=True)
-```
-
-# Center Panel - Main Chat/Content Area
-
-with col_center:
-# Greeting message
-if st.session_state.show_greeting:
-current_hour = datetime.now().hour
-if current_hour < 12:
-greeting = “Good Morning! ☀️”
-elif current_hour < 18:
-greeting = “Good Afternoon! 🌤️”
-else:
-greeting = “Good Evening! 🌙”
-
-```
-    st.markdown(f'<div class="greeting">{greeting}</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="subgreeting">Welcome to your AI Learning Assistant. How can I help you today?</div>',
-        unsafe_allow_html=True
-    )
-    
-    # Quick action cards
-    st.markdown("""
-    <div class="glass-card">
-        <h4 style="color: white; margin-bottom: 20px;">🚀 Quick Start</h4>
-        <p style="color: rgba(255,255,255,0.9);">
-            Select a feature from the left panel to get started, or use the chat to ask me anything!
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-# Feature-specific content
-else:
-    feature = st.session_state.selected_feature
-    
-    if feature == "flashcards":
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.markdown('<h3 style="color: white;">💳 AI Flashcard Generator</h3>', unsafe_allow_html=True)
-        
-        topic = st.text_input("Enter a topic:", key="flashcard_topic")
-        num_cards = st.slider("Number of cards:", 3, 10, 5)
-        
-        if st.button("Generate Flashcards"):
-            with st.spinner("Generating flashcards..."):
-                time.sleep(1)
-                cards = generate_flashcards(topic, num_cards)
-                
-                for i, card in enumerate(cards):
-                    st.markdown(f"""
-                    <div class="feature-card">
-                        <strong>Card {i+1}</strong><br>
-                        <strong>Q:</strong> {card['front']}<br>
-                        <strong>A:</strong> {card['back']}
-                    </div>
-                    """, unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    elif feature == "quiz":
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.markdown('<h3 style="color: white;">📝 AI Quiz Generator</h3>', unsafe_allow_html=True)
-        
-        topic = st.text_input("Enter a topic:", key="quiz_topic")
-        num_questions = st.slider("Number of questions:", 3, 10, 5)
-        
-        if st.button("Generate Quiz"):
-            with st.spinner("Generating quiz..."):
-                time.sleep(1)
-                quiz = generate_quiz(topic, num_questions)
-                
-                for i, q in enumerate(quiz):
-                    st.markdown(f"""
-                    <div class="feature-card">
-                        <strong>Question {i+1}:</strong> {q['question']}<br>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    for opt in q['options']:
-                        st.radio(f"Q{i+1}", q['options'], key=f"q{i}")
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    elif feature == "summarize":
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.markdown('<h3 style="color: white;">📄 Document Summarizer</h3>', unsafe_allow_html=True)
-        
-        uploaded_file = st.file_uploader("Upload a document", type=['txt', 'pdf', 'docx'])
-        text_input = st.text_area("Or paste text here:", height=200)
-        
-        if st.button("Summarize"):
-            with st.spinner("Analyzing document..."):
-                time.sleep(1)
-                content = text_input if text_input else "Sample document content"
-                summary = summarize_document(content)
-                
-                st.markdown(f"""
-                <div class="feature-card">
-                    <strong>Summary:</strong><br>{summary}
-                </div>
-                """, unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    elif feature == "chat":
-        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-        
-        # Display chat history
-        for msg in st.session_state.chat_history:
-            if msg['role'] == 'user':
-                st.markdown(f'<div class="user-message">{msg["content"]}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="ai-message">{msg["content"]}</div>', unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Chat input
-        user_input = st.text_input("Type your message...", key="chat_input")
-        if st.button("Send") and user_input:
-            st.session_state.chat_history.append({"role": "user", "content": user_input})
-            
-            # Simulate AI response
-            ai_response = f"I understand you're asking about: {user_input}. Let me help you with that!"
-            st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
-            st.rerun()
-```
-
-# Right Panel - Info/Stats
-
-with col_right:
-st.markdown(’<div class="side-panel-right">’, unsafe_allow_html=True)
-st.markdown(”””
-<div class="glass-card">
-<h3 style="color: white; text-align: center;">📊 Stats</h3>
-</div>
-“””, unsafe_allow_html=True)
-
-```
+# Custom CSS for purple glass design
 st.markdown("""
-<div class="feature-card">
-    <div class="feature-icon">🎯</div>
-    <strong style="color: white;">Study Streak</strong><br>
-    <span style="color: rgba(255,255,255,0.9);">5 days</span>
-</div>
-
-<div class="feature-card">
-    <div class="feature-icon">📚</div>
-    <strong style="color: white;">Cards Reviewed</strong><br>
-    <span style="color: rgba(255,255,255,0.9);">124 cards</span>
-</div>
-
-<div class="feature-card">
-    <div class="feature-icon">✅</div>
-    <strong style="color: white;">Quizzes Completed</strong><br>
-    <span style="color: rgba(255,255,255,0.9);">12 quizzes</span>
-</div>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    .main {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .purple-glass {
+        background: rgba(147, 51, 234, 0.15);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(147, 51, 234, 0.3);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(147, 51, 234, 0.2);
+    }
+    
+    .green-glass {
+        background: rgba(34, 197, 94, 0.15);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(34, 197, 94, 0.2);
+    }
+    
+    .nav-bar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(20px);
+        padding: 1rem 0;
+    }
+    
+    .nav-link {
+        color: white !important;
+        text-decoration: none;
+        margin: 0 1rem;
+        font-weight: 500;
+    }
+    
+    .nav-link:hover {
+        color: #a855f7 !important;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #a855f7, #9333ea);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    .centered-form {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .pricing-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        color: white;
+    }
+    
+    .pricing-card.pro {
+        background: rgba(168, 85, 247, 0.2);
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        position: relative;
+    }
+    
+    .pricing-card.pro::before {
+        content: 'MOST POPULAR';
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #a855f7;
+        color: white;
+        padding: 0.25rem 1rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .feature-list li {
+        padding: 0.5rem 0;
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .feature-list li::before {
+        content: '✓ ';
+        color: #a855f7;
+        font-weight: bold;
+    }
+    
+    h1, h2, h3 {
+        color: white;
+        font-weight: 700;
+    }
+    
+    /* Hide nav on scroll - approximate with JS */
+    <script>
+    let lastScrollTop = 0;
+    const nav = document.querySelector('.nav-bar');
+    window.addEventListener('scroll', () => {
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        if (scrollTop > lastScrollTop && scrollTop > 100) {
+            nav.style.transform = 'translateY(-100%)';
+        } else {
+            nav.style.transform = 'translateY(0)';
+        }
+        lastScrollTop = scrollTop;
+    });
+    </script>
+    </style>
 """, unsafe_allow_html=True)
 
-st.markdown('</div>', unsafe_allow_html=True)
-```
+# Initialize session state
+if 'page' not in st.session_state:
+    st.session_state.page = 'home'
+if 'user' not in st.session_state:
+    st.session_state.user = None
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
+if 'show_right_panel' not in st.session_state:
+    st.session_state.show_right_panel = True
+if 'generated_content' not in st.session_state:
+    st.session_state.generated_content = {'flashcards': [], 'quizzes': [], 'documents': []}
+
+# Gemini setup - assume API key in secrets
+try:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-flash",
+        generation_config={
+            "temperature": 0.7,
+            "top_k": 50,
+            "top_p": 0.95,
+            "max_output_tokens": 2048,
+        },
+        safety_settings={
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        }
+    )
+except:
+    st.warning("Gemini API key not found. Please add to secrets.toml")
+    model = None
+
+# Navigation Bar
+def render_nav():
+    col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
+    with col1:
+        if st.button("Home", key="nav_home"):
+            st.session_state.page = 'home'
+    with col2:
+        if st.button("Pricing", key="nav_pricing"):
+            st.session_state.page = 'pricing'
+    with col3:
+        if st.button("Contact", key="nav_contact"):
+            st.session_state.page = 'contact'
+    with col4:
+        if st.button("Dashboard", key="nav_dashboard"):
+            if st.session_state.user:
+                st.session_state.page = 'dashboard'
+            else:
+                st.session_state.page = 'login'
+    with col5:
+        if st.session_state.user:
+            if st.button("Logout", key="nav_logout"):
+                st.session_state.user = None
+                st.rerun()
+        else:
+            if st.button("Login", key="nav_login"):
+                st.session_state.page = 'login'
+
+st.markdown('<div class="nav-bar"><div style="display: flex; justify-content: center; align-items: center;">', unsafe_allow_html=True)
+render_nav()
+st.markdown('</div></div>', unsafe_allow_html=True)
+st.markdown('<div style="height: 70px;"></div>', unsafe_allow_html=True)  # Spacer for fixed nav
+
+# Page Router
+def main():
+    if st.session_state.page == 'home':
+        render_home()
+    elif st.session_state.page == 'pricing':
+        render_pricing()
+    elif st.session_state.page == 'login':
+        render_login()
+    elif st.session_state.page == 'signup':
+        render_signup()
+    elif st.session_state.page == 'forgot':
+        render_forgot()
+    elif st.session_state.page == 'dashboard':
+        if not st.session_state.user:
+            st.session_state.page = 'login'
+            st.rerun()
+        else:
+            render_dashboard()
+    elif st.session_state.page == 'contact':
+        render_contact()
+
+def render_home():
+    st.markdown('<div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">', unsafe_allow_html=True)
+    st.markdown('<h1>Welcome to CrypticX</h1><p style="font-size: 1.2rem; color: rgba(255,255,255,0.8);">Your AI-powered study companion. Unlock the power of generative AI to master any subject.</p>', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+    with col2:
+        st.markdown('<button class="btn-primary" onclick="st.session_state.page = \'signup\'">Get Started for Free</button>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Why Choose Us
+    st.markdown('<div class="glass" style="margin: 4rem 2rem; padding: 3rem; text-align: center;">', unsafe_allow_html=True)
+    st.markdown('<h2>Why Choose CrypticX?</h2><p>Revolutionize your learning with cutting-edge AI tools designed for students and professionals.</p>', unsafe_allow_html=True)
+    cols = st.columns(3)
+    with cols[0]:
+        st.markdown('<h3>🔮 AI Magic</h3><p>Generate flashcards and quizzes instantly.</p>', unsafe_allow_html=True)
+    with cols[1]:
+        st.markdown('<h3>📚 Document Analysis</h3><p>Upload PDFs and get smart summaries.</p>', unsafe_allow_html=True)
+    with cols[2]:
+        st.markdown('<h3>🚀 Easy to Use</h3><p>Intuitive interface, start in seconds.</p>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Features
+    st.markdown('<div style="margin: 4rem 2rem; text-align: center;">', unsafe_allow_html=True)
+    st.markdown('<h2>Features</h2>', unsafe_allow_html=True)
+    cols = st.columns(2)
+    with cols[0]:
+        st.markdown("""
+        <ul class="feature-list">
+            <li>Flashcard Generation</li>
+            <li>Interactive Quizzes</li>
+            <li>PDF Upload & Analysis</li>
+            <li>Progress Tracking</li>
+        </ul>
+        """, unsafe_allow_html=True)
+    with cols[1]:
+        st.markdown("""
+        <ul class="feature-list">
+            <li>Advanced Summaries</li>
+            <li>Team Collaboration</li>
+            <li>Custom Integrations</li>
+            <li>Priority Support</li>
+        </ul>
+        """, unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+    with col2:
+        st.markdown('<button class="btn-primary" onclick="st.session_state.page = \'pricing\'">Get Started for Free</button>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def render_pricing():
+    st.markdown('<div style="padding: 4rem 2rem; text-align: center;">', unsafe_allow_html=True)
+    st.markdown('<h1 style="color: white;">Choose Your Plan</h1><p style="color: rgba(255,255,255,0.8);">Start free, upgrade when you\'re ready</p>', unsafe_allow_html=True)
+    cols = st.columns(3)
+    with cols[0]:
+        st.markdown("""
+        <div class="pricing-card">
+            <h3>Free</h3>
+            <h2>$0<span style="font-size: 1rem;">/mo</span></h2>
+            <ul class="feature-list">
+                <li>10 AI questions/day</li>
+                <li>Basic summaries</li>
+                <li>5 quizzes/week</li>
+                <li>Community support</li>
+            </ul>
+            <button class="btn-secondary" onclick="st.session_state.page = 'signup'">Start Free</button>
+        </div>
+        """, unsafe_allow_html=True)
+    with cols[1]:
+        st.markdown("""
+        <div class="pricing-card pro">
+            <h3>Pro</h3>
+            <h2>$15<span style="font-size: 1rem;">/mo</span></h2>
+            <ul class="feature-list">
+                <li>Unlimited AI questions</li>
+                <li>Advanced summaries</li>
+                <li>Unlimited quizzes</li>
+                <li>PDF upload (100MB)</li>
+                <li>Priority support</li>
+                <li>Progress analytics</li>
+            </ul>
+            <button class="btn-primary" onclick="st.session_state.page = 'signup'">Get Pro</button>
+        </div>
+        """, unsafe_allow_html=True)
+    with cols[2]:
+        st.markdown("""
+        <div class="pricing-card">
+            <h3>Enterprise</h3>
+            <h2>$35<span style="font-size: 1rem;">/mo</span></h2>
+            <ul class="feature-list">
+                <li>Everything in Pro</li>
+                <li>Team accounts</li>
+                <li>Advanced analytics</li>
+                <li>Custom integrations</li>
+                <li>Dedicated support</li>
+                <li>Unlimited storage</li>
+            </ul>
+            <button class="btn-secondary">Contact Us</button>
+        </div>
+        """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def render_login():
+    st.markdown('<div style="height: 100vh; display: flex; justify-content: center; align-items: center;">', unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="glass centered-form">', unsafe_allow_html=True)
+        st.markdown('<h2 style="text-align: center; color: white;">Login</h2>', unsafe_allow_html=True)
+        email = st.text_input("Email", placeholder="Enter your email")
+        password = st.text_input("Password", type="password", placeholder="Enter your password")
+        if st.button("Login", key="login_btn"):
+            # Mock login
+            if email and password:
+                st.session_state.user = {"email": email}
+                st.session_state.page = 'dashboard'
+                st.rerun()
+            else:
+                st.error("Please enter email and password")
+        col1, col2, col3 = st.columns(3)
+        with col2:
+            if st.button("Forgot Password?", key="forgot_link"):
+                st.session_state.page = 'forgot'
+                st.rerun()
+        st.markdown('<p style="text-align: center; color: rgba(255,255,255,0.8);">Don\'t have an account? <a href="#" onclick="st.session_state.page = \'signup\'" style="color: #a855f7;">Sign up</a></p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def render_signup():
+    st.markdown('<div style="height: 100vh; display: flex; justify-content: center; align-items: center;">', unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="glass centered-form">', unsafe_allow_html=True)
+        st.markdown('<h2 style="text-align: center; color: white;">Sign Up</h2>', unsafe_allow_html=True)
+        name = st.text_input("Full Name", placeholder="Enter your name")
+        email = st.text_input("Email", placeholder="Enter your email")
+        password = st.text_input("Password", type="password", placeholder="Create a password")
+        if st.button("Sign Up", key="signup_btn"):
+            # Mock signup
+            if name and email and password:
+                st.session_state.user = {"name": name, "email": email}
+                st.session_state.page = 'dashboard'
+                st.rerun()
+            else:
+                st.error("Please fill all fields")
+        st.markdown('<p style="text-align: center; color: rgba(255,255,255,0.8);">Already have an account? <a href="#" onclick="st.session_state.page = \'login\'" style="color: #a855f7;">Login</a></p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def render_forgot():
+    st.markdown('<div style="height: 100vh; display: flex; justify-content: center; align-items: center;">', unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="glass centered-form">', unsafe_allow_html=True)
+        st.markdown('<h2 style="text-align: center; color: white;">Forgot Password</h2>', unsafe_allow_html=True)
+        email = st.text_input("Email", placeholder="Enter your email to reset")
+        if st.button("Send Reset Link", key="reset_btn"):
+            if email:
+                st.success("Reset link sent to your email!")
+                st.session_state.page = 'login'
+                st.rerun()
+            else:
+                st.error("Please enter your email")
+        if st.button("Back to Login", key="back_login"):
+            st.session_state.page = 'login'
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def render_contact():
+    st.markdown('<div style="padding: 4rem 2rem;">', unsafe_allow_html=True)
+    st.markdown('<div class="glass" style="max-width: 600px; margin: 0 auto;">', unsafe_allow_html=True)
+    st.markdown('<h2 style="text-align: center; color: white;">Contact Us</h2>', unsafe_allow_html=True)
+    name = st.text_input("Name")
+    email = st.text_input("Email")
+    message = st.text_area("Message")
+    if st.button("Send Message", key="contact_btn"):
+        st.success("Message sent! We'll get back to you soon.")
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def render_dashboard():
+    # Full width layout
+    if 'chat_input' not in st.session_state:
+        st.session_state.chat_input = ""
+    
+    # Left sidebar - Purple glass side panel
+    with st.sidebar:
+        st.markdown('<div class="purple-glass" style="height: 100vh; overflow-y: auto;">', unsafe_allow_html=True)
+        st.markdown('<h3 style="color: white;">Study Tools</h3>', unsafe_allow_html=True)
+        tool = st.selectbox("Select Tool", ["Chat with AI", "Generate Flashcards", "Create Quiz", "Analyze Document"])
+        if tool == "Analyze Document":
+            uploaded_file = st.file_uploader("Upload PDF", type="pdf")
+            if uploaded_file:
+                # Mock analysis
+                st.session_state.generated_content['documents'].append("Analyzed: " + uploaded_file.name)
+        elif tool == "Generate Flashcards":
+            topic = st.text_input("Topic")
+            if st.button("Generate", key="gen_flash"):
+                if model:
+                    response = model.generate_content(f"Generate 5 flashcards on {topic}")
+                    st.session_state.generated_content['flashcards'].append(response.text)
+                else:
+                    st.session_state.generated_content['flashcards'].append(f"Mock flashcards on {topic}")
+        elif tool == "Create Quiz":
+            topic = st.text_input("Quiz Topic")
+            if st.button("Create", key="gen_quiz"):
+                if model:
+                    response = model.generate_content(f"Create a 10-question quiz on {topic}")
+                    st.session_state.generated_content['quizzes'].append(response.text)
+                else:
+                    st.session_state.generated_content['quizzes'].append(f"Mock quiz on {topic}")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Main chat area
+    col_left, col_right = st.columns([3, 1])
+    with col_left:
+        st.markdown('<div class="glass" style="height: 80vh; overflow-y: auto; padding: 1rem;">', unsafe_allow_html=True)
+        for message in st.session_state.chat_history:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+        
+        # Chat input
+        if prompt := st.chat_input("Ask anything about your studies..."):
+            st.session_state.chat_history.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            
+            # Auto-hide right panel when chatting
+            st.session_state.show_right_panel = False
+            
+            if model:
+                response = model.generate_content(prompt)
+                full_response = response.text
+            else:
+                full_response = "Mock response: This is a generated answer using Gemini 1.5 Flash."
+            
+            st.session_state.chat_history.append({"role": "assistant", "content": full_response})
+            with st.chat_message("assistant"):
+                st.markdown(full_response)
+        
+        # Show right panel after chat (manual toggle for simplicity)
+        if st.button("Show Outputs"):
+            st.session_state.show_right_panel = True
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Right panel - Green glass, conditional
+    if st.session_state.show_right_panel:
+        with col_right:
+            st.markdown('<div class="green-glass" style="height: 80vh; overflow-y: auto;">', unsafe_allow_html=True)
+            st.markdown('<h3 style="color: white;">Generated Content</h3>', unsafe_allow_html=True)
+            
+            if st.session_state.generated_content['flashcards']:
+                st.markdown("### Flashcards")
+                for card in st.session_state.generated_content['flashcards'][-3:]:  # Last 3
+                    st.markdown(card)
+            
+            if st.session_state.generated_content['quizzes']:
+                st.markdown("### Quizzes")
+                for quiz in st.session_state.generated_content['quizzes'][-3:]:
+                    st.markdown(quiz)
+            
+            if st.session_state.generated_content['documents']:
+                st.markdown("### Documents")
+                for doc in st.session_state.generated_content['documents'][-3:]:
+                    st.markdown(doc)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
