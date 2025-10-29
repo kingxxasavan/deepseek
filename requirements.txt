@@ -1,2 +1,5 @@
 firebase-admin>=6.2.0
-streamlit google-generativeai pypdf2 python-docx
+streamlit
+google-generativeai
+pypdf2
+python-docx
