@@ -6,7 +6,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore, auth
 from datetime import datetime
 import smtplib
-from email.mime.text import MimeText
+from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import secrets
 import string
