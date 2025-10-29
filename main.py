@@ -4,18 +4,15 @@ from datetime import datetime
 import json
 
 # Page config
-
 st.set_page_config(
-page_title=“Cryptic AI Study Tool”,
-page_icon=“🔮”,
-layout=“wide”,
-initial_sidebar_state=“collapsed”
+    page_title="Cryptic AI Study Tool",
+    page_icon="🔮",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
 # Custom CSS for purple glass design
-
-st.markdown(”””
-
+st.markdown("""
 <style>
     /* Global Styles */
     * {
@@ -424,353 +421,445 @@ st.markdown(”””
         box-shadow: 0 5px 20px rgba(139, 92, 246, 0.4);
     }
 </style>
-
-“””, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # Initialize session state
-
-if ‘page’ not in st.session_state:
-st.session_state.page = ‘landing’
-if ‘logged_in’ not in st.session_state:
-st.session_state.logged_in = False
-if ‘flashcards’ not in st.session_state:
-st.session_state.flashcards = []
-if ‘quizzes’ not in st.session_state:
-st.session_state.quizzes = []
-if ‘documents’ not in st.session_state:
-st.session_state.documents = []
-if ‘show_sidebar’ not in st.session_state:
-st.session_state.show_sidebar = True
-if ‘show_right_panel’ not in st.session_state:
-st.session_state.show_right_panel = True
+if 'page' not in st.session_state:
+    st.session_state.page = 'landing'
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+if 'flashcards' not in st.session_state:
+    st.session_state.flashcards = []
+if 'quizzes' not in st.session_state:
+    st.session_state.quizzes = []
+if 'documents' not in st.session_state:
+    st.session_state.documents = []
+if 'show_sidebar' not in st.session_state:
+    st.session_state.show_sidebar = True
+if 'show_right_panel' not in st.session_state:
+    st.session_state.show_right_panel = True
 
 # Navigation function
-
 def navigate_to(page):
-st.session_state.page = page
-st.rerun()
+    st.session_state.page = page
+    st.rerun()
 
 # Landing Page
-
 def landing_page():
-# Navigation Bar
-st.markdown(”””
-<div class="nav-bar" id="navbar">
-<div class="nav-logo">🔮 Cryptic AI</div>
-<div class="nav-links">
-<a class="nav-link" onclick="scrollToSection('why')">Why Choose Us</a>
-<a class="nav-link" onclick="scrollToSection('features')">Features</a>
-<a class="nav-link" onclick="scrollToSection('pricing')">Pricing</a>
-<a class="nav-link" onclick="scrollToSection('contact')">Contact</a>
-</div>
-</div>
-
-```
-<script>
-    let lastScroll = 0;
-    const navbar = document.getElementById('navbar');
-    
-    window.addEventListener('scroll', () => {
-        const currentScroll = window.pageYOffset;
+    # Navigation Bar
+    st.markdown("""
+    <div class="nav-bar" id="navbar">
+        <div class="nav-logo">🔮 Cryptic AI</div>
+        <div class="nav-links">
+            <a class="nav-link" onclick="scrollToSection('why')">Why Choose Us</a>
+            <a class="nav-link" onclick="scrollToSection('features')">Features</a>
+            <a class="nav-link" onclick="scrollToSection('pricing')">Pricing</a>
+            <a class="nav-link" onclick="scrollToSection('contact')">Contact</a>
+        </div>
+    </div>
+    <script>
+        let lastScroll = 0;
+        const navbar = document.getElementById('navbar');
         
-        if (currentScroll > lastScroll && currentScroll > 100) {
-            navbar.classList.add('nav-hidden');
-        } else {
-            navbar.classList.remove('nav-hidden');
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll > lastScroll && currentScroll > 100) {
+                navbar.classList.add('nav-hidden');
+            } else {
+                navbar.classList.remove('nav-hidden');
+            }
+            
+            lastScroll = currentScroll;
+        });
+        
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
         }
-        
-        lastScroll = currentScroll;
-    });
-    
-    function scrollToSection(id) {
-        document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
-    }
-</script>
-""", unsafe_allow_html=True)
+    </script>
+    """, unsafe_allow_html=True)
 
-# Hero Section
-st.markdown("""
-<div class="hero">
-    <div class="hero-title">Welcome to Cryptic AI</div>
-    <div class="hero-subtitle">Transform Your Learning with AI-Powered Study Tools</div>
-    <p style="color: #c4b5fd; font-size: 1.2rem; max-width: 800px; margin-bottom: 2rem;">
-        Harness the power of artificial intelligence to create flashcards, quizzes, 
-        and analyze documents instantly. Study smarter, not harder.
-    </p>
-</div>
-""", unsafe_allow_html=True)
+    # Hero Section
+    st.markdown("""
+    <div class="hero">
+        <div class="hero-title">Welcome to Cryptic AI</div>
+        <div class="hero-subtitle">Transform Your Learning with AI-Powered Study Tools</div>
+        <p style="color: #c4b5fd; font-size: 1.2rem; max-width: 800px; margin-bottom: 2rem;">
+            Harness the power of artificial intelligence to create flashcards, quizzes, 
+            and analyze documents instantly. Study smarter, not harder.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
-col1, col2, col3 = st.columns([1, 1, 1])
-with col2:
-    if st.button("🚀 Get Started For Free", key="hero_cta", use_container_width=True):
-        navigate_to('signup')
-
-# Why Choose Us Section
-st.markdown('<div id="why" class="section">', unsafe_allow_html=True)
-st.markdown('<h2 class="section-title">Why Choose Cryptic AI?</h2>', unsafe_allow_html=True)
-
-cols = st.columns(3)
-reasons = [
-    ("⚡", "Lightning Fast", "Generate study materials in seconds with our advanced AI technology"),
-    ("🎯", "Personalized Learning", "Adaptive content tailored to your learning style and pace"),
-    ("🔒", "Secure & Private", "Your data is encrypted and never shared with third parties")
-]
-
-for col, (icon, title, desc) in zip(cols, reasons):
-    with col:
-        st.markdown(f"""
-        <div class="feature-card">
-            <div class="feature-icon">{icon}</div>
-            <div class="feature-title">{title}</div>
-            <div class="feature-desc">{desc}</div>
-        </div>
-        """, unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
-
-# Features Section
-st.markdown('<div id="features" class="section">', unsafe_allow_html=True)
-st.markdown('<h2 class="section-title">Powerful Features</h2>', unsafe_allow_html=True)
-
-cols = st.columns(2)
-features = [
-    ("🗃️", "AI Flashcards", "Automatically generate flashcards from any text or document"),
-    ("📝", "Smart Quizzes", "Create custom quizzes with multiple question types"),
-    ("📄", "Document Analysis", "Deep analysis and summarization of your study materials"),
-    ("🤖", "Gemini AI Integration", "Powered by Google's cutting-edge Gemini 1.5 Flash model")
-]
-
-for i, (icon, title, desc) in enumerate(features):
-    with cols[i % 2]:
-        st.markdown(f"""
-        <div class="feature-card">
-            <div class="feature-icon">{icon}</div>
-            <div class="feature-title">{title}</div>
-            <div class="feature-desc">{desc}</div>
-        </div>
-        """, unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
-
-# CTA Section
-st.markdown('<div class="section" style="min-height: 50vh;">', unsafe_allow_html=True)
-col1, col2, col3 = st.columns([1, 1, 1])
-with col2:
-    if st.button("🚀 Start Learning Now", key="features_cta", use_container_width=True):
-        navigate_to('signup')
-st.markdown('</div>', unsafe_allow_html=True)
-
-# Pricing Section
-st.markdown('<div id="pricing" class="section">', unsafe_allow_html=True)
-st.markdown('<h2 class="section-title">Choose Your Plan</h2>', unsafe_allow_html=True)
-
-pricing_cols = st.columns(3)
-plans = [
-    ("Free", "$0", ["10 flashcards/month", "5 quizzes/month", "Basic document analysis", "Community support"], False),
-    ("Pro", "$9.99", ["Unlimited flashcards", "Unlimited quizzes", "Advanced AI analysis", "Priority support", "Export features"], True),
-    ("Team", "$29.99", ["Everything in Pro", "Team collaboration", "Admin dashboard", "API access", "24/7 support"], False)
-]
-
-for col, (plan, price, features_list, featured) in zip(pricing_cols, plans):
-    with col:
-        featured_class = "featured" if featured else ""
-        features_html = "".join([f"<div>✓ {feature}</div>" for feature in features_list])
-        st.markdown(f"""
-        <div class="pricing-card {featured_class}">
-            <div class="pricing-plan">{plan}</div>
-            <div class="pricing-price">{price}<span style="font-size: 1rem;">/month</span></div>
-            <div class="pricing-features">{features_html}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button(f"Choose {plan}", key=f"pricing_{plan}", use_container_width=True):
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        if st.button("🚀 Get Started For Free", key="hero_cta", use_container_width=True):
             navigate_to('signup')
-st.markdown('</div>', unsafe_allow_html=True)
 
-# Contact Section
-st.markdown('<div id="contact" class="section">', unsafe_allow_html=True)
-st.markdown('<div class="contact-section">', unsafe_allow_html=True)
-st.markdown('<h2 class="section-title">Get In Touch</h2>', unsafe_allow_html=True)
+    # Why Choose Us Section
+    st.markdown('<div id="why" class="section">', unsafe_allow_html=True)
+    st.markdown('<h2 class="section-title">Why Choose Cryptic AI?</h2>', unsafe_allow_html=True)
 
-with st.form("contact_form"):
-    st.text_input("Name", placeholder="Your name")
-    st.text_input("Email", placeholder="your@email.com")
-    st.text_area("Message", placeholder="How can we help you?", height=150)
-    submitted = st.form_submit_button("Send Message")
-    if submitted:
-        st.success("✅ Message sent! We'll get back to you soon.")
+    cols = st.columns(3)
+    reasons = [
+        ("⚡", "Lightning Fast", "Generate study materials in seconds with our advanced AI technology"),
+        ("🎯", "Personalized Learning", "Adaptive content tailored to your learning style and pace"),
+        ("🔒", "Secure & Private", "Your data is encrypted and never shared with third parties")
+    ]
 
-st.markdown('</div></div>', unsafe_allow_html=True)
-```
-
-# Login Page
-
-def login_page():
-st.markdown(’<div class="auth-container">’, unsafe_allow_html=True)
-st.markdown(’<div class="auth-box">’, unsafe_allow_html=True)
-st.markdown(’<div class="auth-title">Welcome Back</div>’, unsafe_allow_html=True)
-
-```
-with st.form("login_form"):
-    email = st.text_input("Email", placeholder="your@email.com")
-    password = st.text_input("Password", type="password", placeholder="Enter your password")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        login_button = st.form_submit_button("Login", use_container_width=True)
-    with col2:
-        if st.form_submit_button("Back", use_container_width=True):
-            navigate_to('landing')
-    
-    if login_button:
-        if email and password:
-            st.session_state.logged_in = True
-            st.session_state.user_email = email
-            navigate_to('dashboard')
-        else:
-            st.error("Please fill in all fields")
-
-col1, col2 = st.columns(2)
-with col1:
-    if st.button("Forgot Password?", use_container_width=True):
-        navigate_to('forgot')
-with col2:
-    if st.button("Sign Up", use_container_width=True):
-        navigate_to('signup')
-
-st.markdown('</div></div>', unsafe_allow_html=True)
-```
-
-# Signup Page
-
-def signup_page():
-st.markdown(’<div class="auth-container">’, unsafe_allow_html=True)
-st.markdown(’<div class="auth-box">’, unsafe_allow_html=True)
-st.markdown(’<div class="auth-title">Create Account</div>’, unsafe_allow_html=True)
-
-```
-with st.form("signup_form"):
-    name = st.text_input("Full Name", placeholder="John Doe")
-    email = st.text_input("Email", placeholder="your@email.com")
-    password = st.text_input("Password", type="password", placeholder="Create a password")
-    confirm_password = st.text_input("Confirm Password", type="password", placeholder="Confirm your password")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        signup_button = st.form_submit_button("Sign Up", use_container_width=True)
-    with col2:
-        if st.form_submit_button("Back", use_container_width=True):
-            navigate_to('landing')
-    
-    if signup_button:
-        if name and email and password and confirm_password:
-            if password == confirm_password:
-                st.session_state.logged_in = True
-                st.session_state.user_email = email
-                st.session_state.user_name = name
-                navigate_to('dashboard')
-            else:
-                st.error("Passwords don't match")
-        else:
-            st.error("Please fill in all fields")
-
-if st.button("Already have an account? Login", use_container_width=True):
-    navigate_to('login')
-
-st.markdown('</div></div>', unsafe_allow_html=True)
-```
-
-# Forgot Password Page
-
-def forgot_page():
-st.markdown(’<div class="auth-container">’, unsafe_allow_html=True)
-st.markdown(’<div class="auth-box">’, unsafe_allow_html=True)
-st.markdown(’<div class="auth-title">Reset Password</div>’, unsafe_allow_html=True)
-
-```
-st.markdown('<p style="text-align: center; color: #c4b5fd; margin-bottom: 2rem;">Enter your email to receive a password reset link</p>', unsafe_allow_html=True)
-
-with st.form("forgot_form"):
-    email = st.text_input("Email", placeholder="your@email.com")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        reset_button = st.form_submit_button("Send Reset Link", use_container_width=True)
-    with col2:
-        if st.form_submit_button("Back", use_container_width=True):
-            navigate_to('login')
-    
-    if reset_button:
-        if email:
-            st.success("✅ Reset link sent! Check your email.")
-        else:
-            st.error("Please enter your email")
-
-st.markdown('</div></div>', unsafe_allow_html=True)
-```
-
-# Dashboard
-
-def dashboard_page():
-sidebar_class = “” if st.session_state.show_sidebar else “sidebar-hidden”
-right_panel_class = “” if st.session_state.show_right_panel else “right-panel-hidden”
-
-```
-# Create three columns for dashboard layout
-col1, col2, col3 = st.columns([1, 3, 1.5])
-
-# Left Sidebar
-with col1:
-    st.markdown(f'<div class="sidebar {sidebar_class}">', unsafe_allow_html=True)
-    st.markdown('<h2 style="color: #a78bfa; margin-bottom: 2rem;">🔮 Cryptic AI</h2>', unsafe_allow_html=True)
-    
-    if st.button("🗃️ Generate Flashcards", key="flashcard_btn", use_container_width=True):
-        st.session_state.current_tool = "flashcards"
-    
-    if st.button("📝 Create Quiz", key="quiz_btn", use_container_width=True):
-        st.session_state.current_tool = "quiz"
-    
-    if st.button("📄 Analyze Document", key="doc_btn", use_container_width=True):
-        st.session_state.current_tool = "document"
-    
-    if st.button("🤖 Chat with Gemini", key="chat_btn", use_container_width=True):
-        st.session_state.current_tool = "chat"
-        st.session_state.show_right_panel = False
-    
-    st.markdown("<hr style='border-color: rgba(139, 92, 246, 0.3); margin: 2rem 0;'>", unsafe_allow_html=True)
-    
-    if st.button("⚙️ Settings", key="settings_btn", use_container_width=True):
-        pass
-    
-    if st.button("🚪 Logout", key="logout_btn", use_container_width=True):
-        st.session_state.logged_in = False
-        navigate_to('landing')
-    
+    for col, (icon, title, desc) in zip(cols, reasons):
+        with col:
+            st.markdown(f"""
+            <div class="feature-card">
+                <div class="feature-icon">{icon}</div>
+                <div class="feature-title">{title}</div>
+                <div class="feature-desc">{desc}</div>
+            </div>
+            """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Main Content
-with col2:
-    st.markdown('<div class="main-content">', unsafe_allow_html=True)
-    
-    tool = st.session_state.get('current_tool', 'flashcards')
-    
-    if tool == "flashcards":
-        st.markdown('<h1 style="color: #a78bfa;">🗃️ AI Flashcard Generator</h1>', unsafe_allow_html=True)
-        st.markdown('<div class="glass" style="margin-top: 2rem;">', unsafe_allow_html=True)
+    # Features Section
+    st.markdown('<div id="features" class="section">', unsafe_allow_html=True)
+    st.markdown('<h2 class="section-title">Powerful Features</h2>', unsafe_allow_html=True)
+
+    cols = st.columns(2)
+    features = [
+        ("🗃️", "AI Flashcards", "Automatically generate flashcards from any text or document"),
+        ("📝", "Smart Quizzes", "Create custom quizzes with multiple question types"),
+        ("📄", "Document Analysis", "Deep analysis and summarization of your study materials"),
+        ("🤖", "Gemini AI Integration", "Powered by Google's cutting-edge Gemini 1.5 Flash model")
+    ]
+
+    for i, (icon, title, desc) in enumerate(features):
+        with cols[i % 2]:
+            st.markdown(f"""
+            <div class="feature-card">
+                <div class="feature-icon">{icon}</div>
+                <div class="feature-title">{title}</div>
+                <div class="feature-desc">{desc}</div>
+            </div>
+            """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # CTA Section
+    st.markdown('<div class="section" style="min-height: 50vh;">', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        if st.button("🚀 Start Learning Now", key="features_cta", use_container_width=True):
+            navigate_to('signup')
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Pricing Section
+    st.markdown('<div id="pricing" class="section">', unsafe_allow_html=True)
+    st.markdown('<h2 class="section-title">Choose Your Plan</h2>', unsafe_allow_html=True)
+
+    pricing_cols = st.columns(3)
+    plans = [
+        ("Free", "$0", ["10 flashcards/month", "5 quizzes/month", "Basic document analysis", "Community support"], False),
+        ("Pro", "$9.99", ["Unlimited flashcards", "Unlimited quizzes", "Advanced AI analysis", "Priority support", "Export features"], True),
+        ("Team", "$29.99", ["Everything in Pro", "Team collaboration", "Admin dashboard", "API access", "24/7 support"], False)
+    ]
+
+    for col, (plan, price, features_list, featured) in zip(pricing_cols, plans):
+        with col:
+            featured_class = "featured" if featured else ""
+            features_html = "".join([f"<div>✓ {feature}</div>" for feature in features_list])
+            st.markdown(f"""
+            <div class="pricing-card {featured_class}">
+                <div class="pricing-plan">{plan}</div>
+                <div class="pricing-price">{price}<span style="font-size: 1rem;">/month</span></div>
+                <div class="pricing-features">{features_html}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button(f"Choose {plan}", key=f"pricing_{plan}", use_container_width=True):
+                navigate_to('signup')
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Contact Section
+    st.markdown('<div id="contact" class="section">', unsafe_allow_html=True)
+    st.markdown('<div class="contact-section">', unsafe_allow_html=True)
+    st.markdown('<h2 class="section-title">Get In Touch</h2>', unsafe_allow_html=True)
+
+    with st.form("contact_form"):
+        st.text_input("Name", placeholder="Your name")
+        st.text_input("Email", placeholder="your@email.com")
+        st.text_area("Message", placeholder="How can we help you?", height=150)
+        submitted = st.form_submit_button("Send Message")
+        if submitted:
+            st.success("✅ Message sent! We'll get back to you soon.")
+
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
+# Login Page
+def login_page():
+    st.markdown('<div class="auth-container">', unsafe_allow_html=True)
+    st.markdown('<div class="auth-box">', unsafe_allow_html=True)
+    st.markdown('<div class="auth-title">Welcome Back</div>', unsafe_allow_html=True)
+
+    with st.form("login_form"):
+        email = st.text_input("Email", placeholder="your@email.com")
+        password = st.text_input("Password", type="password", placeholder="Enter your password")
         
-        topic = st.text_input("Enter a topic:", placeholder="e.g., Python Programming, World War II, Calculus")
-        num_cards = st.slider("Number of flashcards:", 5, 20, 10)
+        col1, col2 = st.columns(2)
+        with col1:
+            login_button = st.form_submit_button("Login", use_container_width=True)
+        with col2:
+            if st.form_submit_button("Back", use_container_width=True):
+                navigate_to('landing')
         
-        if st.button("Generate Flashcards", use_container_width=True):
-            with st.spinner("🔮 Creating flashcards..."):
-                # Simulated flashcard generation
-                new_cards = [
-                    {"front": f"Question {i+1} about {topic}", "back": f"Answer {i+1} with detailed explanation"}
-                    for i in range(num_cards)
-                ]
-                st.session_state.flashcards.extend(new_cards)
-                st.session_state.show_right_panel = True
-                st.success(f"✅ Generated {num_cards} flashcards!")
+        if login_button:
+            if email and password:
+                st.session_state.logged_in = True
+                st.session_state.user_email = email
+                navigate_to('dashboard')
+            else:
+                st.error("Please fill in all fields")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Forgot Password?", use_container_width=True):
+            navigate_to('forgot')
+    with col2:
+        if st.button("Sign Up", use_container_width=True):
+            navigate_to('signup')
+
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
+# Signup Page
+def signup_page():
+    st.markdown('<div class="auth-container">', unsafe_allow_html=True)
+    st.markdown('<div class="auth-box">', unsafe_allow_html=True)
+    st.markdown('<div class="auth-title">Create Account</div>', unsafe_allow_html=True)
+
+    with st.form("signup_form"):
+        name = st.text_input("Full Name", placeholder="John Doe")
+        email = st.text_input("Email", placeholder="your@email.com")
+        password = st.text_input("Password", type="password", placeholder="Create a password")
+        confirm_password = st.text_input("Confirm Password", type="password", placeholder="Confirm your password")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            signup_button = st.form_submit_button("Sign Up", use_container_width=True)
+        with col2:
+            if st.form_submit_button("Back", use_container_width=True):
+                navigate_to('landing')
+        
+        if signup_button:
+            if name and email and password and confirm_password:
+                if password == confirm_password:
+                    st.session_state.logged_in = True
+                    st.session_state.user_email = email
+                    st.session_state.user_name = name
+                    navigate_to('dashboard')
+                else:
+                    st.error("Passwords don't match")
+            else:
+                st.error("Please fill in all fields")
+
+    if st.button("Already have an account? Login", use_container_width=True):
+        navigate_to('login')
+
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
+# Forgot Password Page
+def forgot_page():
+    st.markdown('<div class="auth-container">', unsafe_allow_html=True)
+    st.markdown('<div class="auth-box">', unsafe_allow_html=True)
+    st.markdown('<div class="auth-title">Reset Password</div>', unsafe_allow_html=True)
+
+    st.markdown('<p style="text-align: center; color: #c4b5fd; margin-bottom: 2rem;">Enter your email to receive a password reset link</p>', unsafe_allow_html=True)
+
+    with st.form("forgot_form"):
+        email = st.text_input("Email", placeholder="your@email.com")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            reset_button = st.form_submit_button("Send Reset Link", use_container_width=True)
+        with col2:
+            if st.form_submit_button("Back", use_container_width=True):
+                navigate_to('login')
+        
+        if reset_button:
+            if email:
+                st.success("✅ Reset link sent! Check your email.")
+            else:
+                st.error("Please enter your email")
+
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
+# Dashboard
+def dashboard_page():
+    sidebar_class = "" if st.session_state.show_sidebar else "sidebar-hidden"
+    right_panel_class = "" if st.session_state.show_right_panel else "right-panel-hidden"
+
+    # Create three columns for dashboard layout
+    col1, col2, col3 = st.columns([1, 3, 1.5])
+
+    # Left Sidebar
+    with col1:
+        st.markdown(f'<div class="sidebar {sidebar_class}">', unsafe_allow_html=True)
+        st.markdown('<h2 style="color: #a78bfa; margin-bottom: 2rem;">🔮 Cryptic AI</h2>', unsafe_allow_html=True)
+        
+        if st.button("🗃️ Generate Flashcards", key="flashcard_btn", use_container_width=True):
+            st.session_state.current_tool = "flashcards"
+        
+        if st.button("📝 Create Quiz", key="quiz_btn", use_container_width=True):
+            st.session_state.current_tool = "quiz"
+        
+        if st.button("📄 Analyze Document", key="doc_btn", use_container_width=True):
+            st.session_state.current_tool = "document"
+        
+        if st.button("🤖 Chat with Gemini", key="chat_btn", use_container_width=True):
+            st.session_state.current_tool = "chat"
+            st.session_state.show_right_panel = False
+        
+        st.markdown("<hr style='border-color: rgba(139, 92, 246, 0.3); margin: 2rem 0;'>", unsafe_allow_html=True)
+        
+        if st.button("⚙️ Settings", key="settings_btn", use_container_width=True):
+            pass
+        
+        if st.button("🚪 Logout", key="logout_btn", use_container_width=True):
+            st.session_state.logged_in = False
+            navigate_to('landing')
         
         st.markdown('</div>', unsafe_allow_html=True)
-    
-    elif tool == "quiz":
-        st.markdown('<h1 style="color: #a78bfa;">📝 Smart Quiz Creator</h1>', unsafe_allow_html=True)
-```
+
+    # Main Content
+    with col2:
+        st.markdown('<div class="main-content">', unsafe_allow_html=True)
+        
+        tool = st.session_state.get('current_tool', 'flashcards')
+        
+        if tool == "flashcards":
+            st.markdown('<h1 style="color: #a78bfa;">🗃️ AI Flashcard Generator</h1>', unsafe_allow_html=True)
+            st.markdown('<div class="glass" style="margin-top: 2rem;">', unsafe_allow_html=True)
+            
+            topic = st.text_input("Enter a topic:", placeholder="e.g., Python Programming, World War II, Calculus")
+            num_cards = st.slider("Number of flashcards:", 5, 20, 10)
+            
+            if st.button("Generate Flashcards", use_container_width=True):
+                with st.spinner("🔮 Creating flashcards..."):
+                    # Simulated flashcard generation
+                    new_cards = [
+                        {"front": f"Question {i+1} about {topic}", "back": f"Answer {i+1} with detailed explanation"}
+                        for i in range(num_cards)
+                    ]
+                    st.session_state.flashcards.extend(new_cards)
+                    st.session_state.show_right_panel = True
+                    st.success(f"✅ Generated {num_cards} flashcards!")
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        elif tool == "quiz":
+            st.markdown('<h1 style="color: #a78bfa;">📝 Smart Quiz Creator</h1>', unsafe_allow_html=True)
+            st.markdown('<div class="glass" style="margin-top: 2rem;">', unsafe_allow_html=True)
+            
+            topic = st.text_input("Enter quiz topic:", placeholder="e.g., Biology Basics, JavaScript Functions")
+            num_questions = st.slider("Number of questions:", 5, 15, 10)
+            
+            if st.button("Generate Quiz", use_container_width=True):
+                with st.spinner("🔮 Creating quiz..."):
+                    # Simulated quiz generation
+                    new_quiz = {
+                        "title": f"Quiz on {topic}",
+                        "questions": [
+                            {
+                                "question": f"Question {i+1} for {topic}",
+                                "options": [f"Option A{i+1}", f"Option B{i+1}", f"Option C{i+1}", f"Correct: Option D{i+1}"],
+                                "correct": 3
+                            }
+                            for i in range(num_questions)
+                        ]
+                    }
+                    st.session_state.quizzes.append(new_quiz)
+                    st.session_state.show_right_panel = True
+                    st.success(f"✅ Generated quiz with {num_questions} questions!")
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        elif tool == "document":
+            st.markdown('<h1 style="color: #a78bfa;">📄 Document Analyzer</h1>', unsafe_allow_html=True)
+            st.markdown('<div class="glass" style="margin-top: 2rem;">', unsafe_allow_html=True)
+            
+            uploaded_file = st.file_uploader("Upload a document (PDF/TXT):", type=["pdf", "txt"])
+            if uploaded_file is not None:
+                if st.button("Analyze Document", use_container_width=True):
+                    with st.spinner("🔮 Analyzing document..."):
+                        # Simulated analysis
+                        analysis = {
+                            "summary": f"Summary of {uploaded_file.name}: This document covers key concepts in the topic.",
+                            "key_points": ["Point 1", "Point 2", "Point 3"],
+                            "insights": "AI-generated insights here."
+                        }
+                        st.session_state.documents.append({"file": uploaded_file.name, "analysis": analysis})
+                        st.session_state.show_right_panel = True
+                        st.success("✅ Document analyzed!")
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        elif tool == "chat":
+            st.markdown('<h1 style="color: #a78bfa;">🤖 Chat with Gemini</h1>', unsafe_allow_html=True)
+            st.markdown('<div class="glass" style="margin-top: 2rem;">', unsafe_allow_html=True)
+            
+            user_input = st.text_input("Ask Gemini anything:", placeholder="e.g., Explain quantum computing simply")
+            if st.button("Send", use_container_width=True):
+                with st.spinner("🔮 Gemini is thinking..."):
+                    # Note: In a real app, configure genai and call generate_content
+                    response = "Gemini response: This is a simulated AI response to your query."
+                    st.write(response)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Right Panel (Generated Content)
+    with col3:
+        st.markdown(f'<div class="right-panel {right_panel_class}">', unsafe_allow_html=True)
+        if st.session_state.show_right_panel:
+            st.markdown('<h3 style="color: #86efac; margin-bottom: 1rem;">📋 Recently Generated</h3>', unsafe_allow_html=True)
+            
+            if st.session_state.flashcards:
+                st.markdown('<h4>Flashcards</h4>', unsafe_allow_html=True)
+                for card in st.session_state.flashcards[-5:]:  # Show last 5
+                    st.markdown(f"""
+                    <div class="generated-item">
+                        <strong>Front:</strong> {card['front']}<br>
+                        <strong>Back:</strong> {card['back']}
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            if st.session_state.quizzes:
+                st.markdown('<h4>Quizzes</h4>', unsafe_allow_html=True)
+                for quiz in st.session_state.quizzes[-3:]:  # Show last 3
+                    st.markdown(f"""
+                    <div class="generated-item">
+                        <strong>{quiz['title']}</strong><br>
+                        {len(quiz['questions'])} questions generated.
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            if st.session_state.documents:
+                st.markdown('<h4>Documents</h4>', unsafe_allow_html=True)
+                for doc in st.session_state.documents[-3:]:  # Show last 3
+                    st.markdown(f"""
+                    <div class="generated-item">
+                        <strong>{doc['file']}</strong><br>
+                        Analysis summary: {doc['analysis']['summary']}
+                    </div>
+                    """, unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# Main app routing
+if st.session_state.page == 'landing':
+    landing_page()
+elif st.session_state.page == 'login' and not st.session_state.logged_in:
+    login_page()
+elif st.session_state.page == 'signup':
+    signup_page()
+elif st.session_state.page == 'forgot':
+    forgot_page()
+elif st.session_state.logged_in:
+    dashboard_page()
+else:
+    login_page()
