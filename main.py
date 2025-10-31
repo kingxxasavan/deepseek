@@ -142,7 +142,14 @@ st.markdown("""
     .hero-section {min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 4rem 2rem; position: relative;}
     .welcome-badge {display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 0.6rem 1.5rem; border-radius: 50px; font-size: 0.9rem; color: #fff; font-weight: 500; margin-bottom: 2rem; backdrop-filter: blur(10px); animation: fadeInUp 0.6s ease-out;}
     .hero-title {font-size: 5rem; font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; background: linear-gradient(135deg, #ffffff 0%, #8b5cf6 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; max-width: 1000px; animation: fadeInUp 0.8s ease-out 0.2s backwards;}
-    .hero-subtitle {font-size: 1.25rem; color: rgba(255, 255, 255, 0.6); margin-bottom: 3rem; max-width: 700px; line-height: 1.7; animation: fadeInUp 1s ease-out 0.4s backwards;}
+    .hero-subtitle {
+        font-size: 1.25rem; 
+        color: rgba(255, 255, 255, 0.6); 
+        margin-bottom: 2rem; /* <-- FIX: Reduced from 3rem to 2rem */
+        max-width: 700px; 
+        line-height: 1.7; 
+        animation: fadeInUp 1s ease-out 0.4s backwards;
+    }
     
     /* Stats section */
     .stats-section {display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; max-width: 900px; margin: 4rem auto 0; padding: 0 2rem;}
@@ -166,7 +173,17 @@ st.markdown("""
     
     /* Pricing cards */
     .pricing-grid {display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3rem; width: 100%;}
-    .pricing-card {background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 24px; padding: 3rem 2.5rem; text-align: center; transition: all 0.4s; position: relative;}
+    .pricing-card {
+        background: rgba(139, 92, 246, 0.05); 
+        border: 1px solid rgba(139, 92, 246, 0.2); 
+        border-radius: 24px; 
+        padding: 3rem 2.5rem; 
+        text-align: center; 
+        transition: all 0.4s; 
+        position: relative;
+        display: flex; /* Use flex to control content */
+        flex-direction: column; /* Stack items vertically */
+    }
     .pricing-card.featured {background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15)); border: 2px solid #8b5cf6; transform: scale(1.05);}
     .pricing-card:hover {transform: translateY(-10px) scale(1.02); box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);}
     .pricing-card.featured:hover {transform: translateY(-10px) scale(1.07);}
@@ -174,7 +191,15 @@ st.markdown("""
     .pricing-card h3 {font-size: 1.5rem; margin-bottom: 1rem; color: #fff;}
     .price {font-size: 3.5rem; font-weight: 800; margin: 1.5rem 0; background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
     .price-period {font-size: 1rem; color: rgba(255, 255, 255, 0.5);}
-    .feature-list {text-align: left; margin: 2rem 0; color: rgba(255, 255, 255, 0.7); line-height: 2.2; font-size: 0.95rem;}
+    .feature-list {
+        text-align: left; 
+        margin: 2rem 0; 
+        color: rgba(255, 255, 255, 0.7); 
+        line-height: 2.2; 
+        font-size: 0.95rem;
+        flex-grow: 1; /* This makes the feature list grow */
+    }
+    /* The button will be placed at the bottom by default */
     
     /* Unhide and style specific st.button wrappers */
     .stButton {
@@ -236,7 +261,7 @@ st.markdown("""
         color: #fff !important;
         font-weight: 600 !important;
         transition: all 0.3s !important;
-        margin-top: 1rem !important;
+        margin-top: 1rem !important; /* Ensures it's not glued to list */
     }
     
     button[key="plan_free"]:hover,
@@ -285,6 +310,11 @@ st.markdown("""
     button[key="send_message"] {
         border-radius: 12px !important; /* Chat send button */
         padding: 0.8rem 1.5rem !important;
+    }
+    
+    /* FIX: Add margin-top to plan_starter to match others */
+    button[key="plan_starter"] {
+        margin-top: 1rem !important;
     }
     
     /* === END OF CSS FIX === */
@@ -421,28 +451,73 @@ def landing_page():
     st.markdown('<div id="pricing" class="section"><h2 class="section-title">Choose Your Plan</h2><p class="section-subtitle">Start free, upgrade when you\'re ready</p><div class="pricing-grid">', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
+    
+    # --- FIX: Move button inside the HTML "sandwich" ---
     with col1:
-        st.markdown('<div class="pricing-card"><h3>Free</h3><div class="price">$0<span class="price-period">/mo</span></div><div class="feature-list">✓ 10 messages/day<br>✓ Basic document upload<br>✓ Image analysis<br>✓ Community support</div></div>', unsafe_allow_html=True)
+        st.markdown("""
+            <div class="pricing-card">
+                <h3>Free</h3>
+                <div class="price">$0<span class="price-period">/mo</span></div>
+                <div class="feature-list">
+                    ✓ 10 messages/day<br>
+                    ✓ Basic document upload<br>
+                    ✓ Image analysis<br>
+                    ✓ Community support
+                </div>
+        """, unsafe_allow_html=True) # <-- Intentionally unclosed div
+        
         if st.button("Start Free", key="plan_free", use_container_width=True):
             st.session_state.selected_plan = 'Free'
             st.session_state.current_page = 'auth'
             st.rerun()
+            
+        st.markdown('</div>', unsafe_allow_html=True) # <-- Close the div
     
     with col2:
-        st.markdown('<div class="pricing-card featured"><div class="pricing-badge">⭐ MOST POPULAR</div><h3>Starter</h3><div class="price">$15<span class="price-period">/mo</span></div><div class="feature-list">✓ 100 messages/day<br>✓ All document formats<br>✓ Priority processing<br>✓ Email support<br>✓ Chat history</div></div>', unsafe_allow_html=True)
+        st.markdown("""
+            <div class="pricing-card featured">
+                <div class="pricing-badge">⭐ MOST POPULAR</div>
+                <h3>Starter</h3>
+                <div class="price">$15<span class="price-period">/mo</span></div>
+                <div class="feature-list">
+                    ✓ 100 messages/day<br>
+                    ✓ All document formats<br>
+                    ✓ Priority processing<br>
+                    ✓ Email support<br>
+                    ✓ Chat history
+                </div>
+        """, unsafe_allow_html=True) # <-- Intentionally unclosed div
+        
         if st.button("Get Starter", key="plan_starter", use_container_width=True):
             st.session_state.selected_plan = 'Starter'
             st.session_state.current_page = 'auth'
             st.rerun()
+            
+        st.markdown('</div>', unsafe_allow_html=True) # <-- Close the div
     
     with col3:
-        st.markdown('<div class="pricing-card"><h3>Pro</h3><div class="price">$35<span class="price-period">/mo</span></div><div class="feature-list">✓ Unlimited messages<br>✓ Batch processing<br>✓ API access<br>✓ Priority support<br>✓ Advanced analytics<br>✓ Custom integrations</div></div>', unsafe_allow_html=True)
+        st.markdown("""
+            <div class="pricing-card">
+                <h3>Pro</h3>
+                <div class="price">$35<span class="price-period">/mo</span></div>
+                <div class="feature-list">
+                    ✓ Unlimited messages<br>
+                    ✓ Batch processing<br>
+                    ✓ API access<br>
+                    ✓ Priority support<br>
+                    ✓ Advanced analytics<br>
+                    ✓ Custom integrations
+                </div>
+        """, unsafe_allow_html=True) # <-- Intentionally unclosed div
+        
         if st.button("Get Pro", key="plan_pro", use_container_width=True):
             st.session_state.selected_plan = 'Pro'
             st.session_state.current_page = 'auth'
             st.rerun()
+            
+        st.markdown('</div>', unsafe_allow_html=True) # <-- Close the div
     
-    st.markdown('</div></div></div>', unsafe_allow_html=True)
+    st.markdown('</div></div></div>', unsafe_allow_html=True) # Close grid, section, and wrapper
 
 def auth_page():
     st.markdown('<div class="content-wrapper"><div class="auth-container"><div class="auth-box">', unsafe_allow_html=True)
@@ -593,13 +668,9 @@ def dashboard_page():
     # Chat Input Area
     st.markdown('<div class="chat-input-area" style="margin-top: 1rem;">', unsafe_allow_html=True)
     
-    prompt = st.text_input("Ask a question about your documents...", label_visibility="collapsed", placeholder="Ask a question...")
-    
-    # We use columns to place the button inside the text area's div
     col1, col2 = st.columns([5, 1])
     with col1:
-        # The text input is already created above, this is just for layout
-        pass
+        prompt = st.text_input("Ask a question about your documents...", label_visibility="collapsed", placeholder="Ask a question...")
     with col2:
         if st.button("Send", key="send_message", use_container_width=True):
             if prompt:
