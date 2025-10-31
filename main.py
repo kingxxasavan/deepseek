@@ -171,87 +171,100 @@ st.markdown("""
     .feature-card p {color: rgba(255, 255, 255, 0.6); line-height: 1.7; font-size: 0.95rem; flex-grow: 1;}
     
     /* Pricing cards */
-    .pricing-grid {display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; width: 100%; max-width: 1100px;}
+    .pricing-grid {
+        display: grid; 
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 1.5rem; 
+        margin-top: 3rem; 
+        width: 100%; 
+        max-width: 1000px;
+    }
     .pricing-card {
-        background: rgba(139, 92, 246, 0.08); 
+        background: rgba(20, 20, 30, 0.6); 
         border: 1px solid rgba(139, 92, 246, 0.3); 
-        border-radius: 16px; 
-        padding: 2rem 1.75rem; 
+        border-radius: 12px; 
+        padding: 1.5rem; 
         text-align: left; 
         transition: all 0.4s; 
         position: relative;
         display: flex;
         flex-direction: column;
-        min-height: 420px;
+        min-height: 380px;
+        backdrop-filter: blur(10px);
     }
     .pricing-card.featured {
-        background: rgba(139, 92, 246, 0.12); 
+        background: rgba(139, 92, 246, 0.1); 
         border: 2px solid #8b5cf6; 
-        box-shadow: 0 8px 40px rgba(139, 92, 246, 0.3);
+        box-shadow: 0 8px 40px rgba(139, 92, 246, 0.25);
     }
     .pricing-card:hover {
         transform: translateY(-5px); 
-        box-shadow: 0 15px 50px rgba(139, 92, 246, 0.4);
+        box-shadow: 0 12px 50px rgba(139, 92, 246, 0.3);
         border-color: #8b5cf6;
     }
     .pricing-card.featured:hover {
-        box-shadow: 0 20px 60px rgba(139, 92, 246, 0.5);
+        box-shadow: 0 15px 60px rgba(139, 92, 246, 0.4);
     }
     .pricing-badge {
-        position: absolute; 
-        top: -12px; 
-        left: 1.75rem; 
+        display: inline-block;
         background: linear-gradient(135deg, #8b5cf6, #ec4899); 
         color: white; 
-        padding: 0.35rem 1rem; 
-        border-radius: 12px; 
-        font-size: 0.75rem; 
+        padding: 0.3rem 0.8rem; 
+        border-radius: 8px; 
+        font-size: 0.7rem; 
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        margin-bottom: 1rem;
     }
     .pricing-card h3 {
-        font-size: 1.4rem; 
+        font-size: 1.35rem; 
         margin-bottom: 0.5rem; 
-        margin-top: 0.5rem;
         color: #fff;
         font-weight: 700;
     }
     .price {
-        font-size: 3rem; 
+        font-size: 2.5rem; 
         font-weight: 800; 
-        margin: 0.75rem 0 0.25rem 0; 
-        background: linear-gradient(135deg, #8b5cf6, #ec4899); 
-        -webkit-background-clip: text; 
-        -webkit-text-fill-color: transparent;
+        margin: 0.5rem 0 0.25rem 0; 
+        color: #fff;
         line-height: 1;
     }
     .price-period {
-        font-size: 0.95rem; 
+        font-size: 0.85rem; 
         color: rgba(255, 255, 255, 0.5);
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
         display: block;
     }
     .feature-list {
         text-align: left; 
-        margin: 1.5rem 0 0 0; 
+        margin: 1.25rem 0 1.25rem 0; 
         color: rgba(255, 255, 255, 0.75); 
-        line-height: 2.2; 
-        font-size: 0.9rem;
+        line-height: 1.8; 
+        font-size: 0.875rem;
         flex-grow: 1;
-        padding-left: 0.25rem;
     }
     .feature-list-item {
         display: flex;
         align-items: flex-start;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.65rem;
     }
     .feature-check {
         color: #8b5cf6;
-        margin-right: 0.75rem;
-        font-size: 1.1rem;
+        margin-right: 0.65rem;
+        font-size: 1rem;
         font-weight: 700;
         flex-shrink: 0;
+    }
+    
+    /* Pricing button specific styling */
+    button[key="plan_free"],
+    button[key="plan_starter"],
+    button[key="plan_pro"] {
+        margin-top: auto !important;
+        padding: 0.75rem 1.5rem !important;
+        font-size: 0.95rem !important;
+        border-radius: 8px !important;
     }
     
     /* Unhide and style specific st.button wrappers */
