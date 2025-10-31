@@ -189,7 +189,7 @@ st.markdown("""
         position: relative;
         display: flex;
         flex-direction: column;
-        min-height: 380px;
+        min-height: 420px;
         backdrop-filter: blur(10px);
     }
     .pricing-card.featured {
@@ -206,20 +206,24 @@ st.markdown("""
         box-shadow: 0 15px 60px rgba(139, 92, 246, 0.4);
     }
     .pricing-badge {
-        display: inline-block;
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
         background: linear-gradient(135deg, #8b5cf6, #ec4899); 
         color: white; 
-        padding: 0.3rem 0.8rem; 
-        border-radius: 8px; 
+        padding: 0.4rem 1.2rem; 
+        border-radius: 6px; 
         font-size: 0.7rem; 
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 1rem;
+        white-space: nowrap;
     }
     .pricing-card h3 {
         font-size: 1.35rem; 
         margin-bottom: 0.5rem; 
+        margin-top: 0.25rem;
         color: #fff;
         font-weight: 700;
     }
@@ -536,14 +540,14 @@ def landing_page():
                 <div class="price">$0</div>
                 <span class="price-period">per month</span>
                 <div class="feature-list">
-                    <div class="feature-list-item"><span class="feature-check">✓</span><span>10 messages/day</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>10 messages per day</span></div>
                     <div class="feature-list-item"><span class="feature-check">✓</span><span>Basic document upload</span></div>
-                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Image analysis</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Image analysis support</span></div>
                     <div class="feature-list-item"><span class="feature-check">✓</span><span>Community support</span></div>
                 </div>
         """, unsafe_allow_html=True)
         
-        if st.button("Start Free", key="plan_free", use_container_width=True):
+        if st.button("Start for Free", key="plan_free", use_container_width=True):
             st.session_state.selected_plan = 'Free'
             st.session_state.current_page = 'auth'
             st.rerun()
@@ -558,15 +562,15 @@ def landing_page():
                 <div class="price">$15</div>
                 <span class="price-period">per month</span>
                 <div class="feature-list">
-                    <div class="feature-list-item"><span class="feature-check">✓</span><span>100 messages/day</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>100 messages per day</span></div>
                     <div class="feature-list-item"><span class="feature-check">✓</span><span>All document formats</span></div>
                     <div class="feature-list-item"><span class="feature-check">✓</span><span>Priority processing</span></div>
-                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Email support</span></div>
-                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Chat history</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Email support included</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Full chat history</span></div>
                 </div>
         """, unsafe_allow_html=True)
         
-        if st.button("Get Starter", key="plan_starter", use_container_width=True):
+        if st.button("Get Started", key="plan_starter", use_container_width=True):
             st.session_state.selected_plan = 'Starter'
             st.session_state.current_page = 'auth'
             st.rerun()
@@ -589,7 +593,7 @@ def landing_page():
                 </div>
         """, unsafe_allow_html=True)
         
-        if st.button("Get Pro", key="plan_pro", use_container_width=True):
+        if st.button("Contact Us", key="plan_pro", use_container_width=True):
             st.session_state.selected_plan = 'Pro'
             st.session_state.current_page = 'auth'
             st.rerun()
