@@ -43,11 +43,10 @@ if 'action' in query_params:
     
     if action in page_map:
         if action == 'dashboard' and not st.session_state.logged_in:
-            st.session_state.current_page = 'auth' # Redirect to auth if not logged in
+            st.session_state.current_page = 'auth'
         else:
             st.session_state.current_page = page_map[action]
             
-        # Clean up query params to avoid loops
         st.query_params.clear()
         st.rerun()
 
@@ -109,7 +108,7 @@ st.markdown("""
         backdrop-filter: blur(20px);
         border-bottom: 1px solid rgba(139, 92, 246, 0.1);
         transition: all 0.3s ease;
-        height: 80px; /* <-- Explicit height for navbar */
+        height: 80px;
     }
     nav {
         position: relative;
@@ -117,10 +116,10 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 4rem; /* Use 0 padding top/bottom, align-items handles centering */
+        padding: 0 4rem;
         max-width: 1400px;
         margin: 0 auto;
-        height: 100%; /* Make nav fill the container */
+        height: 100%;
     }
     .logo {display: flex; align-items: center; gap: 0.75rem; font-size: 1.5rem; font-weight: 700; color: #8b5cf6; cursor: pointer; letter-spacing: 0.5px;}
     .logo-icon {font-size: 1.8rem; filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.8)); animation: pulse 2s ease-in-out infinite;}
@@ -135,7 +134,7 @@ st.markdown("""
     .content-wrapper {
         position: relative;
         z-index: 10;
-        padding-top: 80px; /* <-- Match navbar height to prevent overlap */
+        padding-top: 80px;
     }
     
     /* Hero section */
@@ -145,7 +144,7 @@ st.markdown("""
     .hero-subtitle {
         font-size: 1.25rem; 
         color: rgba(255, 255, 255, 0.6); 
-        margin-bottom: 2rem; /* <-- FIX: Reduced from 3rem to 2rem */
+        margin-bottom: 2.5rem;
         max-width: 700px; 
         line-height: 1.7; 
         animation: fadeInUp 1s ease-out 0.4s backwards;
@@ -181,8 +180,9 @@ st.markdown("""
         text-align: center; 
         transition: all 0.4s; 
         position: relative;
-        display: flex; /* Use flex to control content */
-        flex-direction: column; /* Stack items vertically */
+        display: flex;
+        flex-direction: column;
+        min-height: 500px;
     }
     .pricing-card.featured {background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15)); border: 2px solid #8b5cf6; transform: scale(1.05);}
     .pricing-card:hover {transform: translateY(-10px) scale(1.02); box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);}
@@ -197,9 +197,8 @@ st.markdown("""
         color: rgba(255, 255, 255, 0.7); 
         line-height: 2.2; 
         font-size: 0.95rem;
-        flex-grow: 1; /* This makes the feature list grow */
+        flex-grow: 1;
     }
-    /* The button will be placed at the bottom by default */
     
     /* Unhide and style specific st.button wrappers */
     .stButton {
@@ -213,12 +212,13 @@ st.markdown("""
     
     /* === UNIFIED BUTTON STYLES === */
     
-    /* Style 1: Primary CTA (Gradient, Rounded) */
-    /* This single rule styles your HTML nav button AND all primary st.buttons */
+    /* Primary CTA Buttons - Gradient Style */
     .nav-cta,
     .hero-cta,
     button[key="hero_start"],
+    button[key="plan_free"],
     button[key="plan_starter"],
+    button[key="plan_pro"],
     button[key="login_submit"],
     button[key="signup_submit"],
     button[key="contact_submit"],
@@ -234,14 +234,17 @@ st.markdown("""
         width: 100% !important;
         cursor: pointer;
         transition: all 0.3s !important;
-        line-height: 1.5; /* Ensure consistent line height */
+        line-height: 1.5;
+        margin-top: 1rem !important;
     }
     
     /* Hover state for Primary CTAs */
     .nav-cta:hover,
     .hero-cta:hover,
     button[key="hero_start"]:hover,
+    button[key="plan_free"]:hover,
     button[key="plan_starter"]:hover,
+    button[key="plan_pro"]:hover,
     button[key="login_submit"]:hover,
     button[key="signup_submit"]:hover,
     button[key="contact_submit"]:hover,
@@ -250,28 +253,7 @@ st.markdown("""
         box-shadow: 0 12px 40px rgba(139, 92, 246, 0.6) !important;
     }
     
-    /* Style 2: Secondary/Outline (e.g., other plans) */
-    button[key="plan_free"],
-    button[key="plan_pro"] {
-        width: 100% !important;
-        padding: 0.9rem !important;
-        border-radius: 12px !important;
-        background: rgba(139, 92, 246, 0.2) !important;
-        border: 1px solid rgba(139, 92, 246, 0.3) !important;
-        color: #fff !important;
-        font-weight: 600 !important;
-        transition: all 0.3s !important;
-        margin-top: 1rem !important; /* Ensures it's not glued to list */
-    }
-    
-    button[key="plan_free"]:hover,
-    button[key="plan_pro"]:hover {
-        background: rgba(139, 92, 246, 0.3) !important;
-        border-color: #8b5cf6 !important;
-        transform: translateY(-2px) !important;
-    }
-    
-    /* Style 3: Tertiary/Ghost (e.g., toggles, back) */
+    /* Tertiary/Ghost buttons */
     button[key="toggle_login"],
     button[key="toggle_signup"],
     button[key="back_home"],
@@ -294,30 +276,28 @@ st.markdown("""
         background: rgba(255, 255, 255, 0.1) !important;
     }
     
-    /* Adjust specific buttons that need tweaks */
-    /* The .nav-cta MUST have width:auto to not break the navbar */
+    /* Specific button adjustments */
     .nav-cta {
         width: auto !important;
-        padding: 0.7rem 1.8rem !important; /* Smaller padding for nav */
-        font-size: 0.9rem !important; /* Smaller font for nav */
+        padding: 0.7rem 1.8rem !important;
+        font-size: 0.9rem !important;
+        margin-top: 0 !important;
     }
     
     button[key="logout"] {
-        width: auto !important; /* Dashboard logout button */
+        width: auto !important;
         padding: 0.7rem 1.5rem !important;
     }
     
     button[key="send_message"] {
-        border-radius: 12px !important; /* Chat send button */
+        border-radius: 12px !important;
         padding: 0.8rem 1.5rem !important;
     }
     
-    /* FIX: Add margin-top to plan_starter to match others */
-    button[key="plan_starter"] {
-        margin-top: 1rem !important;
+    button[key="hero_start"] {
+        max-width: 300px !important;
+        margin: 0 auto !important;
     }
-    
-    /* === END OF CSS FIX === */
     
     /* Auth styles */
     .auth-container {min-height: calc(100vh - 80px); display: flex; justify-content: center; align-items: center; padding: 2rem;}
@@ -391,50 +371,55 @@ st.markdown('<div class="grid-background"></div><div class="glow-orb purple"></d
 # === 3. PAGE & COMPONENT DEFINITIONS ===
 
 def navbar():
-    # Determine active page for styling
     active = st.session_state.current_page
-    
-    # Get user login status
     logged_in = st.session_state.logged_in
     user_name = st.session_state.user_name
 
-    nav_html = f"""
-    <div class="nav-container">
-        <nav>
-            <div class="logo" onclick="window.location.href='?action=home'">⚡ Crptic AI</div>
-            <div class="nav-links">
-                <a class="nav-link {'active' if active == 'home' else ''}" onclick="window.location.href='?action=home'">Home</a>
-                <a class="nav-link" onclick="window.location.href='?action=home#features'">Features</a>
-                <a class="nav-link" onclick="window.location.href='?action=home#pricing'">Pricing</a>
-                <a class="nav-link {'active' if active == 'contact' else ''}" onclick="window.location.href='?action=contact'">Contact</a>
-            </div>
-    """
-
+    # Build the complete navbar HTML
     if logged_in:
-        nav_html += f"""
-            <div>
-                <span class="user-greeting">Hi, {user_name}!</span>
-                <button class="nav-cta" onclick="window.location.href='?action=dashboard'" style="margin-left: 1.5rem;">Dashboard</button>
-            </div>
-        </nav>
-    </div>
-    """
+        nav_html = f"""
+        <div class="nav-container">
+            <nav>
+                <div class="logo" onclick="window.location.href='?action=home'">⚡ Crptic AI</div>
+                <div class="nav-links">
+                    <a class="nav-link {'active' if active == 'home' else ''}" onclick="window.location.href='?action=home'">Home</a>
+                    <a class="nav-link" onclick="window.location.href='?action=home#features'">Features</a>
+                    <a class="nav-link" onclick="window.location.href='?action=home#pricing'">Pricing</a>
+                    <a class="nav-link {'active' if active == 'contact' else ''}" onclick="window.location.href='?action=contact'">Contact</a>
+                </div>
+                <div>
+                    <span class="user-greeting">Hi, {user_name}!</span>
+                    <button class="nav-cta" onclick="window.location.href='?action=dashboard'" style="margin-left: 1.5rem;">Dashboard</button>
+                </div>
+            </nav>
+        </div>
+        """
     else:
-        nav_html += f"""
-            <div>
-                <button class="nav-cta" onclick="window.location.href='?action=auth'">Sign In / Sign Up</button>
-            </div>
-        </nav>
-    </div>
-    """
+        nav_html = f"""
+        <div class="nav-container">
+            <nav>
+                <div class="logo" onclick="window.location.href='?action=home'">⚡ Crptic AI</div>
+                <div class="nav-links">
+                    <a class="nav-link {'active' if active == 'home' else ''}" onclick="window.location.href='?action=home'">Home</a>
+                    <a class="nav-link" onclick="window.location.href='?action=home#features'">Features</a>
+                    <a class="nav-link" onclick="window.location.href='?action=home#pricing'">Pricing</a>
+                    <a class="nav-link {'active' if active == 'contact' else ''}" onclick="window.location.href='?action=contact'">Contact</a>
+                </div>
+                <div>
+                    <button class="nav-cta" onclick="window.location.href='?action=auth'">Sign In / Sign Up</button>
+                </div>
+            </nav>
+        </div>
+        """
+    
     st.markdown(nav_html, unsafe_allow_html=True)
 
 def landing_page():
     st.markdown('<div class="content-wrapper">', unsafe_allow_html=True)
     st.markdown('<div id="home" class="hero-section"><div class="welcome-badge">✨ Welcome to Crptic AI - AI-Powered Learning Assistant</div><h1 class="hero-title">Master Your Studies with AI-Powered Learning</h1><p class="hero-subtitle">Upload documents, images, PDFs and chat with Gemini 2.5 Flash. Transform the way you learn with intelligent tools designed for students.</p></div>', unsafe_allow_html=True)
     
-    # Hero CTA button
-    col1, col2, col3 = st.columns([2, 1, 2])
+    # Hero CTA button - centered
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         if st.button("Start Learning Free", key="hero_start", use_container_width=True):
             st.session_state.selected_plan = 'Free'
@@ -452,7 +437,6 @@ def landing_page():
     
     col1, col2, col3 = st.columns(3)
     
-    # --- FIX: Move button inside the HTML "sandwich" ---
     with col1:
         st.markdown("""
             <div class="pricing-card">
@@ -464,14 +448,14 @@ def landing_page():
                     ✓ Image analysis<br>
                     ✓ Community support
                 </div>
-        """, unsafe_allow_html=True) # <-- Intentionally unclosed div
+        """, unsafe_allow_html=True)
         
         if st.button("Start Free", key="plan_free", use_container_width=True):
             st.session_state.selected_plan = 'Free'
             st.session_state.current_page = 'auth'
             st.rerun()
             
-        st.markdown('</div>', unsafe_allow_html=True) # <-- Close the div
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
         st.markdown("""
@@ -486,14 +470,14 @@ def landing_page():
                     ✓ Email support<br>
                     ✓ Chat history
                 </div>
-        """, unsafe_allow_html=True) # <-- Intentionally unclosed div
+        """, unsafe_allow_html=True)
         
         if st.button("Get Starter", key="plan_starter", use_container_width=True):
             st.session_state.selected_plan = 'Starter'
             st.session_state.current_page = 'auth'
             st.rerun()
             
-        st.markdown('</div>', unsafe_allow_html=True) # <-- Close the div
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with col3:
         st.markdown("""
@@ -508,16 +492,16 @@ def landing_page():
                     ✓ Advanced analytics<br>
                     ✓ Custom integrations
                 </div>
-        """, unsafe_allow_html=True) # <-- Intentionally unclosed div
+        """, unsafe_allow_html=True)
         
         if st.button("Get Pro", key="plan_pro", use_container_width=True):
             st.session_state.selected_plan = 'Pro'
             st.session_state.current_page = 'auth'
             st.rerun()
             
-        st.markdown('</div>', unsafe_allow_html=True) # <-- Close the div
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    st.markdown('</div></div></div>', unsafe_allow_html=True) # Close grid, section, and wrapper
+    st.markdown('</div></div></div>', unsafe_allow_html=True)
 
 def auth_page():
     st.markdown('<div class="content-wrapper"><div class="auth-container"><div class="auth-box">', unsafe_allow_html=True)
@@ -537,12 +521,10 @@ def auth_page():
         
         if st.button("Sign In", key="login_submit"):
             if email and password:
-                # --- THIS IS A PLACEHOLDER ---
-                # In a real app, you would verify email and password here
                 st.session_state.logged_in = True
                 st.session_state.user_name = email.split('@')[0]
                 st.session_state.current_page = 'dashboard'
-                st.session_state.auth_mode = 'signup' # Reset for next time
+                st.session_state.auth_mode = 'signup'
                 st.rerun()
             else:
                 st.error("⚠ Please fill all fields")
@@ -551,7 +533,6 @@ def auth_page():
             st.session_state.auth_mode = 'signup'
             st.rerun()
     else:
-        # Sign Up Mode
         st.markdown('<div class="auth-header"><h1 class="auth-title">Create Account</h1><p class="auth-subtitle">Join and start your AI learning journey</p></div>', unsafe_allow_html=True)
         name = st.text_input("Full Name", key="signup_name", placeholder="Enter your name")
         email = st.text_input("Email", key="signup_email", placeholder="your@email.com")
@@ -559,12 +540,10 @@ def auth_page():
         
         if st.button("Create Account", key="signup_submit"):
             if name and email and password:
-                # --- THIS IS A PLACEHOLDER ---
-                # In a real app, you would create the user in your DB here
                 st.session_state.logged_in = True
                 st.session_state.user_name = name
                 st.session_state.current_page = 'dashboard'
-                st.session_state.auth_mode = 'signup' # Reset for next time
+                st.session_state.auth_mode = 'signup'
                 st.rerun()
             else:
                 st.error("⚠ Please fill all fields")
@@ -587,8 +566,6 @@ def contact_page():
     
     if st.button("Send Message", key="contact_submit"):
         if name and email and message:
-            # --- THIS IS A PLACEHOLDER ---
-            # In a real app, you would email this or save it to a DB
             st.success("✓ Message sent! We'll get back to you soon.")
         else:
             st.error("⚠ Please fill all fields")
@@ -598,7 +575,6 @@ def contact_page():
 def dashboard_page():
     st.markdown('<div class="content-wrapper"><div class="dashboard-wrapper">', unsafe_allow_html=True)
     
-    # --- Sidebar ---
     st.markdown(f'''
     <div class="dashboard-sidebar">
         <div class="sidebar-section">
@@ -631,10 +607,8 @@ def dashboard_page():
     </div>
     ''', unsafe_allow_html=True)
     
-    # --- Main Content ---
     st.markdown('<div class="dashboard-main">', unsafe_allow_html=True)
     
-    # Chat Header
     col1, col2 = st.columns([4, 1])
     with col1:
         st.markdown('''
@@ -652,20 +626,12 @@ def dashboard_page():
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-    
-    # Chat Messages
     st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
     st.markdown('<div class="message ai-message">Hi! I\'m Crptic AI. How can I help you study today? Upload a document or ask a question.</div>', unsafe_allow_html=True)
-    # --- Placeholder ---
-    # In a real app, you would loop through st.session_state.current_chat
-    # for msg in st.session_state.current_chat:
-    #    st.markdown(f'<div class="message {msg["role"]}-message">{msg["content"]}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # File Upload
     uploaded_file = st.file_uploader("Upload your documents (PDF, DOCX, IMG)", type=['pdf', 'docx', 'png', 'jpg'], label_visibility="collapsed")
     
-    # Chat Input Area
     st.markdown('<div class="chat-input-area" style="margin-top: 1rem;">', unsafe_allow_html=True)
     
     col1, col2 = st.columns([5, 1])
@@ -674,18 +640,12 @@ def dashboard_page():
     with col2:
         if st.button("Send", key="send_message", use_container_width=True):
             if prompt:
-                # --- THIS IS A PLACEHOLDER ---
-                # Add user message to chat
-                # st.session_state.current_chat.append({"role": "user", "content": prompt})
-                # Get AI response
-                # ai_response = get_ai_response(prompt, uploaded_file)
-                # st.session_state.current_chat.append({"role": "ai", "content": ai_response})
                 st.rerun()
             else:
                 st.error("Please enter a message")
 
-    st.markdown('</div>', unsafe_allow_html=True) # Close chat-input-area
-    st.markdown('</div></div></div>', unsafe_allow_html=True) # Close dashboard-main, dashboard-wrapper, content-wrapper
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div></div></div>', unsafe_allow_html=True)
 
 def footer():
     st.markdown(f"""
@@ -702,10 +662,8 @@ def footer():
 # === 4. MAIN APP LOGIC ===
 
 def main():
-    # Render the universal navbar
     navbar()
 
-    # Page routing
     if st.session_state.current_page == 'home':
         landing_page()
     elif st.session_state.current_page == 'auth':
@@ -715,7 +673,6 @@ def main():
     elif st.session_state.current_page == 'dashboard':
         dashboard_page()
     
-    # Render the universal footer (except on dashboard)
     if st.session_state.current_page != 'dashboard':
         footer()
 
