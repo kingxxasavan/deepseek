@@ -171,33 +171,87 @@ st.markdown("""
     .feature-card p {color: rgba(255, 255, 255, 0.6); line-height: 1.7; font-size: 0.95rem; flex-grow: 1;}
     
     /* Pricing cards */
-    .pricing-grid {display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3rem; width: 100%; max-width: 1100px;}
+    .pricing-grid {display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; width: 100%; max-width: 1100px;}
     .pricing-card {
-        background: rgba(139, 92, 246, 0.05); 
-        border: 1px solid rgba(139, 92, 246, 0.2); 
-        border-radius: 20px; 
-        padding: 2rem 2rem; 
-        text-align: center; 
+        background: rgba(139, 92, 246, 0.08); 
+        border: 1px solid rgba(139, 92, 246, 0.3); 
+        border-radius: 16px; 
+        padding: 2rem 1.75rem; 
+        text-align: left; 
         transition: all 0.4s; 
         position: relative;
         display: flex;
         flex-direction: column;
-        min-height: 450px;
+        min-height: 420px;
     }
-    .pricing-card.featured {background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15)); border: 2px solid #8b5cf6; transform: scale(1.05);}
-    .pricing-card:hover {transform: translateY(-10px) scale(1.02); box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);}
-    .pricing-card.featured:hover {transform: translateY(-10px) scale(1.07);}
-    .pricing-badge {position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; padding: 0.4rem 1.2rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;}
-    .pricing-card h3 {font-size: 1.5rem; margin-bottom: 0.5rem; color: #fff;}
-    .price {font-size: 3rem; font-weight: 800; margin: 1rem 0; background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
-    .price-period {font-size: 1rem; color: rgba(255, 255, 255, 0.5);}
+    .pricing-card.featured {
+        background: rgba(139, 92, 246, 0.12); 
+        border: 2px solid #8b5cf6; 
+        box-shadow: 0 8px 40px rgba(139, 92, 246, 0.3);
+    }
+    .pricing-card:hover {
+        transform: translateY(-5px); 
+        box-shadow: 0 15px 50px rgba(139, 92, 246, 0.4);
+        border-color: #8b5cf6;
+    }
+    .pricing-card.featured:hover {
+        box-shadow: 0 20px 60px rgba(139, 92, 246, 0.5);
+    }
+    .pricing-badge {
+        position: absolute; 
+        top: -12px; 
+        left: 1.75rem; 
+        background: linear-gradient(135deg, #8b5cf6, #ec4899); 
+        color: white; 
+        padding: 0.35rem 1rem; 
+        border-radius: 12px; 
+        font-size: 0.75rem; 
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .pricing-card h3 {
+        font-size: 1.4rem; 
+        margin-bottom: 0.5rem; 
+        margin-top: 0.5rem;
+        color: #fff;
+        font-weight: 700;
+    }
+    .price {
+        font-size: 3rem; 
+        font-weight: 800; 
+        margin: 0.75rem 0 0.25rem 0; 
+        background: linear-gradient(135deg, #8b5cf6, #ec4899); 
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+    }
+    .price-period {
+        font-size: 0.95rem; 
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 1.5rem;
+        display: block;
+    }
     .feature-list {
         text-align: left; 
-        margin: 1.5rem 0; 
-        color: rgba(255, 255, 255, 0.7); 
-        line-height: 2; 
+        margin: 1.5rem 0 0 0; 
+        color: rgba(255, 255, 255, 0.75); 
+        line-height: 2.2; 
         font-size: 0.9rem;
         flex-grow: 1;
+        padding-left: 0.25rem;
+    }
+    .feature-list-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+    .feature-check {
+        color: #8b5cf6;
+        margin-right: 0.75rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        flex-shrink: 0;
     }
     
     /* Unhide and style specific st.button wrappers */
@@ -466,12 +520,13 @@ def landing_page():
         st.markdown("""
             <div class="pricing-card">
                 <h3>Free</h3>
-                <div class="price">$0<span class="price-period">/mo</span></div>
+                <div class="price">$0</div>
+                <span class="price-period">per month</span>
                 <div class="feature-list">
-                    ✓ 10 messages/day<br>
-                    ✓ Basic document upload<br>
-                    ✓ Image analysis<br>
-                    ✓ Community support
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>10 messages/day</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Basic document upload</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Image analysis</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Community support</span></div>
                 </div>
         """, unsafe_allow_html=True)
         
@@ -485,15 +540,16 @@ def landing_page():
     with col2:
         st.markdown("""
             <div class="pricing-card featured">
-                <div class="pricing-badge">⭐ MOST POPULAR</div>
+                <div class="pricing-badge">Most Popular</div>
                 <h3>Starter</h3>
-                <div class="price">$15<span class="price-period">/mo</span></div>
+                <div class="price">$15</div>
+                <span class="price-period">per month</span>
                 <div class="feature-list">
-                    ✓ 100 messages/day<br>
-                    ✓ All document formats<br>
-                    ✓ Priority processing<br>
-                    ✓ Email support<br>
-                    ✓ Chat history
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>100 messages/day</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>All document formats</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Priority processing</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Email support</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Chat history</span></div>
                 </div>
         """, unsafe_allow_html=True)
         
@@ -508,14 +564,15 @@ def landing_page():
         st.markdown("""
             <div class="pricing-card">
                 <h3>Pro</h3>
-                <div class="price">$35<span class="price-period">/mo</span></div>
+                <div class="price">$35</div>
+                <span class="price-period">per month</span>
                 <div class="feature-list">
-                    ✓ Unlimited messages<br>
-                    ✓ Batch processing<br>
-                    ✓ API access<br>
-                    ✓ Priority support<br>
-                    ✓ Advanced analytics<br>
-                    ✓ Custom integrations
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Unlimited messages</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Batch processing</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>API access</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Priority support</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Advanced analytics</span></div>
+                    <div class="feature-list-item"><span class="feature-check">✓</span><span>Custom integrations</span></div>
                 </div>
         """, unsafe_allow_html=True)
         
