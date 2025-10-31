@@ -144,7 +144,7 @@ st.markdown("""
     .hero-subtitle {
         font-size: 1.25rem; 
         color: rgba(255, 255, 255, 0.6); 
-        margin-bottom: 2.5rem;
+        margin-bottom: 1.5rem;
         max-width: 700px; 
         line-height: 1.7; 
         animation: fadeInUp 1s ease-out 0.4s backwards;
@@ -171,32 +171,32 @@ st.markdown("""
     .feature-card p {color: rgba(255, 255, 255, 0.6); line-height: 1.7; font-size: 0.95rem; flex-grow: 1;}
     
     /* Pricing cards */
-    .pricing-grid {display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3rem; width: 100%;}
+    .pricing-grid {display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3rem; width: 100%; max-width: 1100px;}
     .pricing-card {
         background: rgba(139, 92, 246, 0.05); 
         border: 1px solid rgba(139, 92, 246, 0.2); 
-        border-radius: 24px; 
-        padding: 3rem 2.5rem; 
+        border-radius: 20px; 
+        padding: 2rem 2rem; 
         text-align: center; 
         transition: all 0.4s; 
         position: relative;
         display: flex;
         flex-direction: column;
-        min-height: 500px;
+        min-height: 450px;
     }
     .pricing-card.featured {background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15)); border: 2px solid #8b5cf6; transform: scale(1.05);}
     .pricing-card:hover {transform: translateY(-10px) scale(1.02); box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);}
     .pricing-card.featured:hover {transform: translateY(-10px) scale(1.07);}
     .pricing-badge {position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; padding: 0.4rem 1.2rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;}
-    .pricing-card h3 {font-size: 1.5rem; margin-bottom: 1rem; color: #fff;}
-    .price {font-size: 3.5rem; font-weight: 800; margin: 1.5rem 0; background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+    .pricing-card h3 {font-size: 1.5rem; margin-bottom: 0.5rem; color: #fff;}
+    .price {font-size: 3rem; font-weight: 800; margin: 1rem 0; background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
     .price-period {font-size: 1rem; color: rgba(255, 255, 255, 0.5);}
     .feature-list {
         text-align: left; 
-        margin: 2rem 0; 
+        margin: 1.5rem 0; 
         color: rgba(255, 255, 255, 0.7); 
-        line-height: 2.2; 
-        font-size: 0.95rem;
+        line-height: 2; 
+        font-size: 0.9rem;
         flex-grow: 1;
     }
     
@@ -303,10 +303,18 @@ st.markdown("""
     }
     
     button[key="hero_start"] {
-        max-width: 300px !important;
+        max-width: 250px !important;
         margin: 0 auto !important;
-        padding: 1.2rem 3rem !important;
-        font-size: 1.1rem !important;
+        padding: 0.9rem 2rem !important;
+        font-size: 1rem !important;
+    }
+    
+    /* Pricing buttons - keep inside card */
+    button[key="plan_free"],
+    button[key="plan_starter"],
+    button[key="plan_pro"] {
+        margin-top: auto !important;
+        padding: 0.9rem 2rem !important;
     }
     
     button[key="back_home"] {
@@ -435,15 +443,15 @@ def landing_page():
     st.markdown('<div class="content-wrapper">', unsafe_allow_html=True)
     st.markdown('<div id="home" class="hero-section"><div class="welcome-badge">✨ Welcome to Crptic AI - AI-Powered Learning Assistant</div><h1 class="hero-title">Master Your Studies with AI-Powered Learning</h1><p class="hero-subtitle">Upload documents, images, PDFs and chat with Gemini 2.5 Flash. Transform the way you learn with intelligent tools designed for students.</p></div>', unsafe_allow_html=True)
     
-    # Hero CTA button - centered
-    col1, col2, col3 = st.columns([1, 1, 1])
+    # Hero CTA button - centered and closer
+    col1, col2, col3 = st.columns([1.5, 1, 1.5])
     with col2:
         if st.button("Start Learning Free", key="hero_start", use_container_width=True):
             st.session_state.selected_plan = 'Free'
             st.session_state.current_page = 'auth'
             st.rerun()
     
-    st.markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="height: 30px;"></div>', unsafe_allow_html=True)
     
     st.markdown('<div class="stats-section"><div class="stat-item"><div class="stat-number">50K+</div><div class="stat-label">Active Students</div></div><div class="stat-item"><div class="stat-number">95%</div><div class="stat-label">Satisfaction Rate</div></div><div class="stat-item"><div class="stat-number">1M+</div><div class="stat-label">Questions Answered</div></div></div></div>', unsafe_allow_html=True)
     
