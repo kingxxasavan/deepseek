@@ -99,8 +99,29 @@ st.markdown("""
     .fade-in-up {animation: fadeInUp 0.6s ease-out forwards;}
     
     /* Navigation */
-    .nav-container {position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(10, 10, 15, 0.5); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(139, 92, 246, 0.1); transition: all 0.3s ease;}
-    nav {position: relative; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 4rem; max-width: 1400px; margin: 0 auto;}
+    .nav-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: rgba(10, 10, 15, 0.5);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        transition: all 0.3s ease;
+        height: 80px; /* <-- Explicit height for navbar */
+    }
+    nav {
+        position: relative;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 4rem; /* Use 0 padding top/bottom, align-items handles centering */
+        max-width: 1400px;
+        margin: 0 auto;
+        height: 100%; /* Make nav fill the container */
+    }
     .logo {display: flex; align-items: center; gap: 0.75rem; font-size: 1.5rem; font-weight: 700; color: #8b5cf6; cursor: pointer; letter-spacing: 0.5px;}
     .logo-icon {font-size: 1.8rem; filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.8)); animation: pulse 2s ease-in-out infinite;}
     @keyframes pulse {0%, 100% { filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.8)); } 50% { filter: drop-shadow(0 0 20px rgba(139, 92, 246, 1)); } }
@@ -111,7 +132,11 @@ st.markdown("""
     .user-greeting {color: rgba(255, 255, 255, 0.7); font-weight: 500;}
     
     /* Main content */
-    .content-wrapper {position: relative; z-index: 10; padding-top: 80px;} /* 80px is nav height */
+    .content-wrapper {
+        position: relative;
+        z-index: 10;
+        padding-top: 80px; /* <-- Match navbar height to prevent overlap */
+    }
     
     /* Hero section */
     .hero-section {min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 4rem 2rem; position: relative;}
@@ -161,10 +186,10 @@ st.markdown("""
         opacity: 1 !important;
     }
     
-    /* === CSS REFACTOR START === */
+    /* === UNIFIED BUTTON STYLES === */
     
     /* Style 1: Primary CTA (Gradient, Rounded) */
-    /* This single rule now styles your HTML nav button AND all primary st.buttons */
+    /* This single rule styles your HTML nav button AND all primary st.buttons */
     .nav-cta,
     .hero-cta,
     button[key="hero_start"],
@@ -184,6 +209,7 @@ st.markdown("""
         width: 100% !important;
         cursor: pointer;
         transition: all 0.3s !important;
+        line-height: 1.5; /* Ensure consistent line height */
     }
     
     /* Hover state for Primary CTAs */
@@ -243,8 +269,8 @@ st.markdown("""
         background: rgba(255, 255, 255, 0.1) !important;
     }
     
-    /* Adjust specific buttons that need slight tweaks */
-    /* e.g., the nav button shouldn't be 100% width */
+    /* Adjust specific buttons that need tweaks */
+    /* The .nav-cta MUST have width:auto to not break the navbar */
     .nav-cta {
         width: auto !important;
         padding: 0.7rem 1.8rem !important; /* Smaller padding for nav */
@@ -261,7 +287,7 @@ st.markdown("""
         padding: 0.8rem 1.5rem !important;
     }
     
-    /* === CSS REFACTOR END === */
+    /* === END OF CSS FIX === */
     
     /* Auth styles */
     .auth-container {min-height: calc(100vh - 80px); display: flex; justify-content: center; align-items: center; padding: 2rem;}
@@ -436,10 +462,12 @@ def auth_page():
         
         if st.button("Sign In", key="login_submit"):
             if email and password:
+                # --- THIS IS A PLACEHOLDER ---
+                # In a real app, you would verify email and password here
                 st.session_state.logged_in = True
                 st.session_state.user_name = email.split('@')[0]
                 st.session_state.current_page = 'dashboard'
-                st.session_state.auth_mode = 'signup'
+                st.session_state.auth_mode = 'signup' # Reset for next time
                 st.rerun()
             else:
                 st.error("⚠ Please fill all fields")
@@ -448,6 +476,7 @@ def auth_page():
             st.session_state.auth_mode = 'signup'
             st.rerun()
     else:
+        # Sign Up Mode
         st.markdown('<div class="auth-header"><h1 class="auth-title">Create Account</h1><p class="auth-subtitle">Join and start your AI learning journey</p></div>', unsafe_allow_html=True)
         name = st.text_input("Full Name", key="signup_name", placeholder="Enter your name")
         email = st.text_input("Email", key="signup_email", placeholder="your@email.com")
@@ -455,10 +484,12 @@ def auth_page():
         
         if st.button("Create Account", key="signup_submit"):
             if name and email and password:
+                # --- THIS IS A PLACEHOLDER ---
+                # In a real app, you would create the user in your DB here
                 st.session_state.logged_in = True
                 st.session_state.user_name = name
                 st.session_state.current_page = 'dashboard'
-                st.session_state.auth_mode = 'signup'
+                st.session_state.auth_mode = 'signup' # Reset for next time
                 st.rerun()
             else:
                 st.error("⚠ Please fill all fields")
@@ -481,6 +512,8 @@ def contact_page():
     
     if st.button("Send Message", key="contact_submit"):
         if name and email and message:
+            # --- THIS IS A PLACEHOLDER ---
+            # In a real app, you would email this or save it to a DB
             st.success("✓ Message sent! We'll get back to you soon.")
         else:
             st.error("⚠ Please fill all fields")
@@ -490,7 +523,7 @@ def contact_page():
 def dashboard_page():
     st.markdown('<div class="content-wrapper"><div class="dashboard-wrapper">', unsafe_allow_html=True)
     
-    # Sidebar
+    # --- Sidebar ---
     st.markdown(f'''
     <div class="dashboard-sidebar">
         <div class="sidebar-section">
@@ -523,7 +556,7 @@ def dashboard_page():
     </div>
     ''', unsafe_allow_html=True)
     
-    # Main Content
+    # --- Main Content ---
     st.markdown('<div class="dashboard-main">', unsafe_allow_html=True)
     
     # Chat Header
@@ -548,20 +581,39 @@ def dashboard_page():
     # Chat Messages
     st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
     st.markdown('<div class="message ai-message">Hi! I\'m Crptic AI. How can I help you study today? Upload a document or ask a question.</div>', unsafe_allow_html=True)
-    # You would loop through st.session_state.current_chat here
+    # --- Placeholder ---
+    # In a real app, you would loop through st.session_state.current_chat
+    # for msg in st.session_state.current_chat:
+    #    st.markdown(f'<div class="message {msg["role"]}-message">{msg["content"]}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # File Upload & Chat Input
-    st.file_uploader("Upload your documents (PDF, DOCX, IMG)", type=['pdf', 'docx', 'png', 'jpg'], label_visibility="collapsed")
+    # File Upload
+    uploaded_file = st.file_uploader("Upload your documents (PDF, DOCX, IMG)", type=['pdf', 'docx', 'png', 'jpg'], label_visibility="collapsed")
     
+    # Chat Input Area
     st.markdown('<div class="chat-input-area" style="margin-top: 1rem;">', unsafe_allow_html=True)
+    
+    prompt = st.text_input("Ask a question about your documents...", label_visibility="collapsed", placeholder="Ask a question...")
+    
+    # We use columns to place the button inside the text area's div
     col1, col2 = st.columns([5, 1])
     with col1:
-        prompt = st.text_input("Ask a question about your documents...", label_visibility="collapsed", placeholder="Ask a question...")
+        # The text input is already created above, this is just for layout
+        pass
     with col2:
-        st.button("Send", key="send_message", use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        if st.button("Send", key="send_message", use_container_width=True):
+            if prompt:
+                # --- THIS IS A PLACEHOLDER ---
+                # Add user message to chat
+                # st.session_state.current_chat.append({"role": "user", "content": prompt})
+                # Get AI response
+                # ai_response = get_ai_response(prompt, uploaded_file)
+                # st.session_state.current_chat.append({"role": "ai", "content": ai_response})
+                st.rerun()
+            else:
+                st.error("Please enter a message")
 
+    st.markdown('</div>', unsafe_allow_html=True) # Close chat-input-area
     st.markdown('</div></div></div>', unsafe_allow_html=True) # Close dashboard-main, dashboard-wrapper, content-wrapper
 
 def footer():
