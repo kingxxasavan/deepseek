@@ -210,6 +210,29 @@ st.markdown("""
         opacity: 1 !important;
     }
     
+    /* Target the actual button element inside stButton */
+    .stButton > button {
+        padding: 1rem 2.5rem !important;
+        border-radius: 50px !important;
+        background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%) !important;
+        color: #fff !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4) !important;
+        border: none !important;
+        width: 100% !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        line-height: 1.5 !important;
+        margin-top: 1rem !important;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 12px 40px rgba(139, 92, 246, 0.6) !important;
+        background: linear-gradient(135deg, #9d6ff6 0%, #f05ba3 100%) !important;
+    }
+    
     /* === UNIFIED BUTTON STYLES === */
     
     /* ALL BUTTONS - Gradient Style (matching navbar) */
