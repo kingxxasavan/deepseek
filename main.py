@@ -79,9 +79,6 @@ st.markdown("""
     section.main > div {padding: 0 !important;}
     div[data-testid="stAppViewContainer"] {padding: 0 !important; margin: 0 !important;}
     
-    /* Hide all Streamlit buttons by default */
-    .stButton {display: none !important;}
-    
     /* Base styles */
     * {margin: 0; padding: 0; box-sizing: border-box;}
     html, body {margin: 0 !important; padding: 0 !important; overflow-x: hidden; scroll-behavior: smooth;}
@@ -156,34 +153,30 @@ st.markdown("""
     .price {font-size: 3.5rem; font-weight: 800; margin: 1.5rem 0; background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
     .price-period {font-size: 1rem; color: rgba(255, 255, 255, 0.5);}
     .feature-list {text-align: left; margin: 2rem 0; color: rgba(255, 255, 255, 0.7); line-height: 2.2; font-size: 0.95rem;}
-    /* Pricing button - make visible and styled */
-    .pricing-button, .stButton > button[key="plan_free"], .stButton > button[key="plan_starter"], .stButton > button[key="plan_pro"] {
-        width: 100%; 
-        padding: 0.9rem; 
-        border-radius: 12px; 
-        background: rgba(139, 92, 246, 0.2); 
-        border: 1px solid rgba(139, 92, 246, 0.3); 
-        color: #fff; 
-        font-weight: 600; 
-        cursor: pointer; 
-        transition: all 0.3s; 
-        margin-top: 1rem;
+    /* Unhide and style specific buttons */
+    .stButton:has(button[key="hero_start"]),
+    .stButton:has(button[key="plan_free"]),
+    .stButton:has(button[key="plan_starter"]),
+    .stButton:has(button[key="plan_pro"]),
+    .stButton:has(button[key="back_home"]),
+    .stButton:has(button[key="login_submit"]),
+    .stButton:has(button[key="signup_submit"]),
+    .stButton:has(button[key="toggle_login"]),
+    .stButton:has(button[key="toggle_signup"]),
+    .stButton:has(button[key="logout"]),
+    .stButton:has(button[key="new_chat_btn"]),
+    .stButton:has(button[key="send_message"]),
+    .stButton:has(button[key="contact_submit"]) {
         display: block !important;
         visibility: visible !important;
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
         opacity: 1 !important;
-    }
-    .pricing-button:hover, .stButton > button[key="plan_free"]:hover, .stButton > button[key="plan_starter"]:hover, .stButton > button[key="plan_pro"]:hover {
-        background: rgba(139, 92, 246, 0.3); 
-        border-color: #8b5cf6; 
-        transform: translateY(-2px);
-    }
-    .pricing-card.featured .pricing-button, .pricing-card.featured .stButton > button {
-        background: linear-gradient(135deg, #8b5cf6, #ec4899); 
-        border: none;
     }
     
     /* Hero CTA styling */
-    .stButton > button[key="hero_start"] {
+    button[key="hero_start"] {
         padding: 1rem 2.5rem !important;
         border-radius: 50px !important;
         background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%) !important;
@@ -192,10 +185,106 @@ st.markdown("""
         font-size: 1.1rem !important;
         box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4) !important;
         border: none !important;
+        width: 100% !important;
     }
-    .stButton > button[key="hero_start"]:hover {
+    button[key="hero_start"]:hover {
         transform: translateY(-3px) !important;
         box-shadow: 0 12px 40px rgba(139, 92, 246, 0.6) !important;
+    }
+    
+    /* Pricing buttons */
+    button[key="plan_free"],
+    button[key="plan_starter"],
+    button[key="plan_pro"] {
+        width: 100% !important;
+        padding: 0.9rem !important;
+        border-radius: 12px !important;
+        background: rgba(139, 92, 246, 0.2) !important;
+        border: 1px solid rgba(139, 92, 246, 0.3) !important;
+        color: #fff !important;
+        font-weight: 600 !important;
+        transition: all 0.3s !important;
+        margin-top: 1rem !important;
+    }
+    button[key="plan_free"]:hover,
+    button[key="plan_starter"]:hover,
+    button[key="plan_pro"]:hover {
+        background: rgba(139, 92, 246, 0.3) !important;
+        border-color: #8b5cf6 !important;
+        transform: translateY(-2px) !important;
+    }
+    button[key="plan_starter"] {
+        background: linear-gradient(135deg, #8b5cf6, #ec4899) !important;
+        border: none !important;
+    }
+    
+    /* Auth buttons */
+    button[key="login_submit"],
+    button[key="signup_submit"],
+    button[key="contact_submit"] {
+        width: 100% !important;
+        padding: 1rem !important;
+        border-radius: 12px !important;
+        background: linear-gradient(135deg, #8b5cf6, #ec4899) !important;
+        color: #fff !important;
+        font-weight: 600 !important;
+        border: none !important;
+        margin-top: 1rem !important;
+        transition: all 0.3s !important;
+    }
+    button[key="login_submit"]:hover,
+    button[key="signup_submit"]:hover,
+    button[key="contact_submit"]:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4) !important;
+    }
+    
+    /* Toggle buttons */
+    button[key="toggle_login"],
+    button[key="toggle_signup"],
+    button[key="back_home"] {
+        width: 100% !important;
+        padding: 0.8rem !important;
+        border-radius: 12px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        font-weight: 500 !important;
+        transition: all 0.3s !important;
+        margin-top: 0.5rem !important;
+    }
+    button[key="toggle_login"]:hover,
+    button[key="toggle_signup"]:hover,
+    button[key="back_home"]:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Dashboard buttons */
+    button[key="logout"] {
+        padding: 0.7rem 1.5rem !important;
+        border-radius: 12px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        font-weight: 500 !important;
+        transition: all 0.3s !important;
+    }
+    button[key="logout"]:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    button[key="send_message"] {
+        padding: 0.8rem 1.5rem !important;
+        border-radius: 12px !important;
+        background: linear-gradient(135deg, #8b5cf6, #ec4899) !important;
+        color: #fff !important;
+        font-weight: 600 !important;
+        border: none !important;
+        transition: all 0.3s !important;
+    }
+    button[key="send_message"]:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4) !important;
     }
     
     /* Auth styles */
@@ -259,16 +348,6 @@ st.markdown("""
         .pricing-card.featured {transform: scale(1);}
         .dashboard-sidebar {display: none;}
         .dashboard-main {margin-left: 0; width: 100%;}
-    }
-    
-    /* Unhide specific buttons */
-    .hero-cta, [key="hero_start"], [key="plan_free"], [key="plan_starter"], [key="plan_pro"], [key="back_home"], [key="login_submit"], [key="signup_submit"], [key="toggle_login"], [key="toggle_signup"], [key="logout"], [key="new_chat_btn"], [key="send_message"], [key="contact_submit"] {
-        display: inline-block !important;
-        visibility: visible !important;
-        position: relative !important;
-        width: auto !important;
-        height: auto !important;
-        opacity: 1 !important;
     }
 </style>
 """, unsafe_allow_html=True)
