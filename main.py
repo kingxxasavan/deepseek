@@ -156,9 +156,47 @@ st.markdown("""
     .price {font-size: 3.5rem; font-weight: 800; margin: 1.5rem 0; background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
     .price-period {font-size: 1rem; color: rgba(255, 255, 255, 0.5);}
     .feature-list {text-align: left; margin: 2rem 0; color: rgba(255, 255, 255, 0.7); line-height: 2.2; font-size: 0.95rem;}
-    .pricing-button {width: 100%; padding: 0.9rem; border-radius: 12px; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.3); color: #fff; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 1rem;}
-    .pricing-button:hover {background: rgba(139, 92, 246, 0.3); border-color: #8b5cf6; transform: translateY(-2px);}
-    .pricing-card.featured .pricing-button {background: linear-gradient(135deg, #8b5cf6, #ec4899); border: none;}
+    /* Pricing button - make visible and styled */
+    .pricing-button, .stButton > button[key="plan_free"], .stButton > button[key="plan_starter"], .stButton > button[key="plan_pro"] {
+        width: 100%; 
+        padding: 0.9rem; 
+        border-radius: 12px; 
+        background: rgba(139, 92, 246, 0.2); 
+        border: 1px solid rgba(139, 92, 246, 0.3); 
+        color: #fff; 
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: all 0.3s; 
+        margin-top: 1rem;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    .pricing-button:hover, .stButton > button[key="plan_free"]:hover, .stButton > button[key="plan_starter"]:hover, .stButton > button[key="plan_pro"]:hover {
+        background: rgba(139, 92, 246, 0.3); 
+        border-color: #8b5cf6; 
+        transform: translateY(-2px);
+    }
+    .pricing-card.featured .pricing-button, .pricing-card.featured .stButton > button {
+        background: linear-gradient(135deg, #8b5cf6, #ec4899); 
+        border: none;
+    }
+    
+    /* Hero CTA styling */
+    .stButton > button[key="hero_start"] {
+        padding: 1rem 2.5rem !important;
+        border-radius: 50px !important;
+        background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%) !important;
+        color: #fff !important;
+        font-weight: 600 !important;
+        font-size: 1.1rem !important;
+        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4) !important;
+        border: none !important;
+    }
+    .stButton > button[key="hero_start"]:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 12px 40px rgba(139, 92, 246, 0.6) !important;
+    }
     
     /* Auth styles */
     .auth-container {min-height: calc(100vh - 80px); display: flex; justify-content: center; align-items: center; padding: 2rem;}
@@ -241,7 +279,17 @@ st.markdown('<div class="grid-background"></div><div class="glow-orb purple"></d
 # Pages
 def landing_page():
     st.markdown('<div class="content-wrapper">', unsafe_allow_html=True)
-    st.markdown('<div id="home" class="hero-section"><div class="welcome-badge">✨ Welcome to Crptic AI - AI-Powered Learning Assistant</div><h1 class="hero-title">Master Your Studies with AI-Powered Learning</h1><p class="hero-subtitle">Upload documents, images, PDFs and chat with Gemini 2.5 Flash. Transform the way you learn with intelligent tools designed for students.</p><button class="hero-cta" onclick="window.location.href=\'?action=auth&plan=Free\'">Start Learning Free</button></div>', unsafe_allow_html=True)
+    st.markdown('<div id="home" class="hero-section"><div class="welcome-badge">✨ Welcome to Crptic AI - AI-Powered Learning Assistant</div><h1 class="hero-title">Master Your Studies with AI-Powered Learning</h1><p class="hero-subtitle">Upload documents, images, PDFs and chat with Gemini 2.5 Flash. Transform the way you learn with intelligent tools designed for students.</p></div>', unsafe_allow_html=True)
+    
+    # Hero CTA button
+    col1, col2, col3 = st.columns([2, 1, 2])
+    with col2:
+        if st.button("Start Learning Free", key="hero_start", use_container_width=True):
+            st.session_state.selected_plan = 'Free'
+            st.session_state.current_page = 'auth'
+            st.rerun()
+    
+    st.markdown('<div style="height: 50px;"></div>', unsafe_allow_html=True)
     
     st.markdown('<div class="stats-section"><div class="stat-item"><div class="stat-number">50K+</div><div class="stat-label">Active Students</div></div><div class="stat-item"><div class="stat-number">95%</div><div class="stat-label">Satisfaction Rate</div></div><div class="stat-item"><div class="stat-number">1M+</div><div class="stat-label">Questions Answered</div></div></div></div>', unsafe_allow_html=True)
     
@@ -252,13 +300,25 @@ def landing_page():
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown('<div class="pricing-card"><h3>Free</h3><div class="price">$0<span class="price-period">/mo</span></div><div class="feature-list">✓ 10 messages/day<br>✓ Basic document upload<br>✓ Image analysis<br>✓ Community support</div><button class="pricing-button" onclick="window.location.href=\'?action=auth&plan=Free\'">Start Free</button></div>', unsafe_allow_html=True)
+        st.markdown('<div class="pricing-card"><h3>Free</h3><div class="price">$0<span class="price-period">/mo</span></div><div class="feature-list">✓ 10 messages/day<br>✓ Basic document upload<br>✓ Image analysis<br>✓ Community support</div></div>', unsafe_allow_html=True)
+        if st.button("Start Free", key="plan_free", use_container_width=True):
+            st.session_state.selected_plan = 'Free'
+            st.session_state.current_page = 'auth'
+            st.rerun()
     
     with col2:
-        st.markdown('<div class="pricing-card featured"><div class="pricing-badge">⭐ MOST POPULAR</div><h3>Starter</h3><div class="price">$15<span class="price-period">/mo</span></div><div class="feature-list">✓ 100 messages/day<br>✓ All document formats<br>✓ Priority processing<br>✓ Email support<br>✓ Chat history</div><button class="pricing-button" onclick="window.location.href=\'?action=auth&plan=Starter\'">Get Starter</button></div>', unsafe_allow_html=True)
+        st.markdown('<div class="pricing-card featured"><div class="pricing-badge">⭐ MOST POPULAR</div><h3>Starter</h3><div class="price">$15<span class="price-period">/mo</span></div><div class="feature-list">✓ 100 messages/day<br>✓ All document formats<br>✓ Priority processing<br>✓ Email support<br>✓ Chat history</div></div>', unsafe_allow_html=True)
+        if st.button("Get Starter", key="plan_starter", use_container_width=True):
+            st.session_state.selected_plan = 'Starter'
+            st.session_state.current_page = 'auth'
+            st.rerun()
     
     with col3:
-        st.markdown('<div class="pricing-card"><h3>Pro</h3><div class="price">$35<span class="price-period">/mo</span></div><div class="feature-list">✓ Unlimited messages<br>✓ Batch processing<br>✓ API access<br>✓ Priority support<br>✓ Advanced analytics<br>✓ Custom integrations</div><button class="pricing-button" onclick="window.location.href=\'?action=auth&plan=Pro\'">Get Pro</button></div>', unsafe_allow_html=True)
+        st.markdown('<div class="pricing-card"><h3>Pro</h3><div class="price">$35<span class="price-period">/mo</span></div><div class="feature-list">✓ Unlimited messages<br>✓ Batch processing<br>✓ API access<br>✓ Priority support<br>✓ Advanced analytics<br>✓ Custom integrations</div></div>', unsafe_allow_html=True)
+        if st.button("Get Pro", key="plan_pro", use_container_width=True):
+            st.session_state.selected_plan = 'Pro'
+            st.session_state.current_page = 'auth'
+            st.rerun()
     
     st.markdown('</div></div></div>', unsafe_allow_html=True)
 
