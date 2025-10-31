@@ -212,7 +212,7 @@ st.markdown("""
     
     /* === UNIFIED BUTTON STYLES === */
     
-    /* Primary CTA Buttons - Gradient Style */
+    /* ALL BUTTONS - Gradient Style (matching navbar) */
     .nav-cta,
     .hero-cta,
     button[key="hero_start"],
@@ -222,23 +222,27 @@ st.markdown("""
     button[key="login_submit"],
     button[key="signup_submit"],
     button[key="contact_submit"],
-    button[key="send_message"] {
+    button[key="send_message"],
+    button[key="toggle_login"],
+    button[key="toggle_signup"],
+    button[key="back_home"],
+    button[key="logout"] {
         padding: 1rem 2.5rem !important;
         border-radius: 50px !important;
         background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%) !important;
         color: #fff !important;
         font-weight: 600 !important;
-        font-size: 1.1rem !important;
+        font-size: 1rem !important;
         box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4) !important;
         border: none !important;
         width: 100% !important;
-        cursor: pointer;
-        transition: all 0.3s !important;
-        line-height: 1.5;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        line-height: 1.5 !important;
         margin-top: 1rem !important;
     }
     
-    /* Hover state for Primary CTAs */
+    /* Hover state for ALL buttons */
     .nav-cta:hover,
     .hero-cta:hover,
     button[key="hero_start"]:hover,
@@ -248,32 +252,14 @@ st.markdown("""
     button[key="login_submit"]:hover,
     button[key="signup_submit"]:hover,
     button[key="contact_submit"]:hover,
-    button[key="send_message"]:hover {
-        transform: translateY(-3px) !important;
-        box-shadow: 0 12px 40px rgba(139, 92, 246, 0.6) !important;
-    }
-    
-    /* Tertiary/Ghost buttons */
-    button[key="toggle_login"],
-    button[key="toggle_signup"],
-    button[key="back_home"],
-    button[key="logout"] {
-        width: 100% !important;
-        padding: 0.8rem !important;
-        border-radius: 12px !important;
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        color: #fff !important;
-        font-weight: 500 !important;
-        transition: all 0.3s !important;
-        margin-top: 0.5rem !important;
-    }
-    
+    button[key="send_message"]:hover,
     button[key="toggle_login"]:hover,
     button[key="toggle_signup"]:hover,
     button[key="back_home"]:hover,
     button[key="logout"]:hover {
-        background: rgba(255, 255, 255, 0.1) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 12px 40px rgba(139, 92, 246, 0.6) !important;
+        background: linear-gradient(135deg, #9d6ff6 0%, #f05ba3 100%) !important;
     }
     
     /* Specific button adjustments */
@@ -290,13 +276,21 @@ st.markdown("""
     }
     
     button[key="send_message"] {
-        border-radius: 12px !important;
         padding: 0.8rem 1.5rem !important;
     }
     
     button[key="hero_start"] {
         max-width: 300px !important;
         margin: 0 auto !important;
+        padding: 1.2rem 3rem !important;
+        font-size: 1.1rem !important;
+    }
+    
+    button[key="back_home"] {
+        margin-top: 0 !important;
+        margin-bottom: 1.5rem !important;
+        padding: 0.7rem 1.5rem !important;
+        font-size: 0.9rem !important;
     }
     
     /* Auth styles */
