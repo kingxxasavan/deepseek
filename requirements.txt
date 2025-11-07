@@ -1,5 +1,7 @@
-firebase-admin>=6.2.0
-streamlit
-google-generativeai
-pypdf2
-python-docx
+streamlit 
+google-generativeai 
+SpeechRecognition 
+pyttsx3 
+python-docx 
+PyPDF2 
+pillow
